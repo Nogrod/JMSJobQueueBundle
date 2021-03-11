@@ -3,18 +3,25 @@
 namespace JMS\JobQueueBundle\Controller;
 
 use Doctrine\Common\Util\ClassUtils;
-use Doctrine\ORM\EntityManager;
+use Doctrine\ORM\EntityManagerInterface;
 use JMS\JobQueueBundle\Entity\Job;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
 use JMS\JobQueueBundle\View\JobFilter;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\Routing\Annotation\Route;
 
-class JobController extends Controller
+class JobController extends AbstractController
 {
+    private $jobManager;
+
+    public function __construct(JobManager $jobManager)
+    {
+        $this->jobManager = $jobManager;
+    }
+
     /**
      * @Route("/", name = "jms_jobs_overview")
      */
@@ -73,7 +80,7 @@ class JobController extends Controller
             $class = ClassUtils::getClass($entity);
             $relatedEntities[] = array(
                 'class' => $class,
-                'id' => json_encode($this->get('doctrine')->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)),
+                'id' => json_encode($this->getDoctrine()->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)),
                 'raw' => $entity,
             );
         }
@@ -149,13 +156,13 @@ class JobController extends Controller
         return new RedirectResponse($url, 201);
     }
 
-    private function getEm(): EntityManager
+    private function getEm(): EntityManagerInterface
     {
-        return $this->get('doctrine')->getManagerForClass(Job::class);
+        return $this->getDoctrine()->getManagerForClass(Job::class);
     }
 
     private function getRepo(): JobManager
     {
-        return $this->get('jms_job_queue.job_manager');
+        return $this->jobManager;
     }
 }

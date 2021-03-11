@@ -19,9 +19,10 @@
 namespace JMS\JobQueueBundle\Entity\Repository;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Persistence\Proxy;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\Types\Type;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\EntityManager;
 use Doctrine\ORM\Query\Parameter;
 use Doctrine\ORM\Query\ResultSetMappingBuilder;
@@ -37,7 +38,7 @@ class JobManager
     private $dispatcher;
     private $registry;
     private $retryScheduler;
-    
+
     public function __construct(ManagerRegistry $managerRegistry, EventDispatcherInterface $eventDispatcher, RetryScheduler $retryScheduler)
     {
         $this->registry = $managerRegistry;
@@ -49,7 +50,7 @@ class JobManager
     {
         return $this->getJobManager()->createQuery("SELECT j FROM JMSJobQueueBundle:Job j WHERE j.command = :command AND j.args = :args")
             ->setParameter('command', $command)
-            ->setParameter('args', $args, Type::JSON_ARRAY)
+            ->setParameter('args', $args, Types::JSON)
             ->setMaxResults(1)
             ->getOneOrNullResult();
     }
@@ -105,7 +106,7 @@ class JobManager
             // We do not want to have non-startable jobs floating around in
             // cache as they might be changed by another process. So, better
             // re-fetch them when they are not excluded anymore.
-            $this->getJobManager()->detach($job);
+            //$this->getJobManager()->detach($job);
         }
 
         return null;
@@ -113,7 +114,7 @@ class JobManager
 
     private function acquireLock($workerName, Job $job)
     {
-        $affectedRows = $this->getJobManager()->getConnection()->executeUpdate(
+        $affectedRows = $this->getJobManager()->getConnection()->executeStatement(
             "UPDATE jms_jobs SET workerName = :worker WHERE id = :id AND workerName IS NULL",
             array(
                 'worker' => $workerName,
@@ -177,7 +178,7 @@ class JobManager
             throw new \RuntimeException('$entity must be an object.');
         }
 
-        if ($entity instanceof \Doctrine\Common\Persistence\Proxy) {
+        if ($entity instanceof Proxy) {
             $entity->__load();
         }
 
@@ -247,7 +248,7 @@ class JobManager
                     continue;
                 }
 
-                $this->getJobManager()->detach($job);
+                //$this->getJobManager()->detach($job);
             }
         } catch (\Exception $ex) {
             $this->getJobManager()->getConnection()->rollback();
@@ -269,7 +270,7 @@ class JobManager
 
         if (null !== $this->dispatcher && ($job->isRetryJob() || 0 === count($job->getRetryJobs()))) {
             $event = new StateChangeEvent($job, $finalState);
-            $this->dispatcher->dispatch('jms_job_queue.job_state_change', $event);
+            $this->dispatcher->dispatch($event, 'jms_job_queue.job_state_change');
             $finalState = $event->getNewState();
         }
 
@@ -384,7 +385,7 @@ class JobManager
     {
         $jobIds = $this->getJobManager()->getConnection()
             ->executeQuery("SELECT source_job_id FROM jms_job_dependencies WHERE dest_job_id = :id", array('id' => $job->getId()))
-            ->fetchAll(\PDO::FETCH_COLUMN);
+            ->fetchFirstColumn();
 
         return $jobIds;
     }
