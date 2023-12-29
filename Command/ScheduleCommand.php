@@ -15,10 +15,9 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
+#[\Symfony\Component\Console\Attribute\AsCommand('jms-job-queue:schedule', 'Schedules jobs at defined intervals')]
 class ScheduleCommand extends Command
 {
-    protected static $defaultName = 'jms-job-queue:schedule';
-
     public function __construct(private readonly ManagerRegistry $registry, private readonly iterable $schedulers, private readonly iterable $cronCommands)
     {
         parent::__construct();
@@ -27,7 +26,6 @@ class ScheduleCommand extends Command
     protected function configure()
     {
         $this
-            ->setDescription('Schedules jobs at defined intervals')
             ->addOption('max-runtime', null, InputOption::VALUE_REQUIRED, 'The maximum runtime of this command.', 3600)
             ->addOption('min-job-interval', null, InputOption::VALUE_REQUIRED, 'The minimum time between schedules jobs in seconds.', 5)
         ;

@@ -22,7 +22,7 @@ class JobController extends AbstractController
     /**
      * @Route("/", name = "jms_jobs_overview")
      */
-    public function overviewAction(Request $request)
+    public function overview(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $jobFilter = JobFilter::fromRequest($request);
 
@@ -64,7 +64,7 @@ class JobController extends AbstractController
     /**
      * @Route("/{id}", name = "jms_jobs_details")
      */
-    public function detailsAction(Job $job)
+    public function details(Job $job): \Symfony\Component\HttpFoundation\Response
     {
         $relatedEntities = [];
         foreach ($job->getRelatedEntities() as $entity) {
@@ -113,7 +113,7 @@ class JobController extends AbstractController
     /**
      * @Route("/{id}/retry", name = "jms_jobs_retry_job")
      */
-    public function retryJobAction(Job $job)
+    public function retryJob(Job $job)
     {
         $state = $job->getState();
 
@@ -132,7 +132,7 @@ class JobController extends AbstractController
 
         $url = $this->generateUrl('jms_jobs_details', ['id' => $retryJob->getId()]);
 
-        return new RedirectResponse($url, 201);
+        return new RedirectResponse($url, \Symfony\Component\HttpFoundation\Response::HTTP_CREATED);
     }
 
     private function getEm(): EntityManagerInterface
