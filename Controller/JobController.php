@@ -15,11 +15,8 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class JobController extends AbstractController
 {
-    private $jobManager;
-
-    public function __construct(JobManager $jobManager)
+    public function __construct(private readonly JobManager $jobManager)
     {
-        $this->jobManager = $jobManager;
     }
 
     /**
@@ -61,13 +58,7 @@ class JobController extends AbstractController
 
         $jobs = $query->getResult();
 
-        return $this->render('@JMSJobQueue/Job/overview.html.twig', array(
-            'jobsWithError' => $lastJobsWithError,
-            'jobs' => array_slice($jobs, 0, $perPage),
-            'jobFilter' => $jobFilter,
-            'hasMore' => count($jobs) > $perPage,
-            'jobStates' => Job::getStates(),
-        ));
+        return $this->render('@JMSJobQueue/Job/overview.html.twig', ['jobsWithError' => $lastJobsWithError, 'jobs' => array_slice($jobs, 0, $perPage), 'jobFilter' => $jobFilter, 'hasMore' => count($jobs) > $perPage, 'jobStates' => Job::getStates()]);
     }
 
     /**
@@ -75,43 +66,37 @@ class JobController extends AbstractController
      */
     public function detailsAction(Job $job)
     {
-        $relatedEntities = array();
+        $relatedEntities = [];
         foreach ($job->getRelatedEntities() as $entity) {
             $class = ClassUtils::getClass($entity);
-            $relatedEntities[] = array(
-                'class' => $class,
-                'id' => json_encode($this->getDoctrine()->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)),
-                'raw' => $entity,
-            );
+            $relatedEntities[] = ['class' => $class, 'id' => json_encode($this->getDoctrine()->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)), 'raw' => $entity];
         }
 
-        $statisticData = $statisticOptions = array();
+        $statisticData = $statisticOptions = [];
         if ($this->getParameter('jms_job_queue.statistics')) {
-            $dataPerCharacteristic = array();
+            $dataPerCharacteristic = [];
             foreach ($this->get('doctrine')->getManagerForClass(Job::class)->getConnection()->query("SELECT * FROM jms_job_statistics WHERE job_id = ".$job->getId()) as $row) {
-                $dataPerCharacteristic[$row['characteristic']][] = array(
+                $dataPerCharacteristic[$row['characteristic']][] = [
                     // hack because postgresql lower-cases all column names.
                     array_key_exists('createdAt', $row) ? $row['createdAt'] : $row['createdat'],
                     array_key_exists('charValue', $row) ? $row['charValue'] : $row['charvalue'],
-                );
+                ];
             }
 
-            if ($dataPerCharacteristic) {
-                $statisticData = array(array_merge(array('Time'), $chars = array_keys($dataPerCharacteristic)));
-                $startTime = strtotime($dataPerCharacteristic[$chars[0]][0][0]);
-                $endTime = strtotime($dataPerCharacteristic[$chars[0]][count($dataPerCharacteristic[$chars[0]])-1][0]);
+            if ($dataPerCharacteristic !== []) {
+                $statisticData = [array_merge(['Time'], $chars = array_keys($dataPerCharacteristic))];
+                $startTime = strtotime((string) $dataPerCharacteristic[$chars[0]][0][0]);
+                $endTime = strtotime((string) $dataPerCharacteristic[$chars[0]][count($dataPerCharacteristic[$chars[0]])-1][0]);
                 $scaleFactor = $endTime - $startTime > 300 ? 1/60 : 1;
 
                 // This assumes that we have the same number of rows for each characteristic.
                 for ($i=0,$c=count(reset($dataPerCharacteristic)); $i<$c; $i++) {
-                    $row = array((strtotime($dataPerCharacteristic[$chars[0]][$i][0]) - $startTime) * $scaleFactor);
+                    $row = [(strtotime((string) $dataPerCharacteristic[$chars[0]][$i][0]) - $startTime) * $scaleFactor];
                     foreach ($chars as $name) {
                         $value = (float) $dataPerCharacteristic[$name][$i][1];
 
-                        switch ($name) {
-                            case 'memory':
-                                $value /= 1024 * 1024;
-                                break;
+                        if ($name === 'memory') {
+                            $value /= 1024 * 1024;
                         }
 
                         $row[] = $value;
@@ -122,13 +107,7 @@ class JobController extends AbstractController
             }
         }
 
-        return $this->render('@JMSJobQueue/Job/details.html.twig', array(
-            'job' => $job,
-            'relatedEntities' => $relatedEntities,
-            'incomingDependencies' => $this->getRepo()->getIncomingDependencies($job),
-            'statisticData' => $statisticData,
-            'statisticOptions' => $statisticOptions,
-        ));
+        return $this->render('@JMSJobQueue/Job/details.html.twig', ['job' => $job, 'relatedEntities' => $relatedEntities, 'incomingDependencies' => $this->getRepo()->getIncomingDependencies($job), 'statisticData' => $statisticData, 'statisticOptions' => $statisticOptions]);
     }
 
     /**
@@ -151,7 +130,7 @@ class JobController extends AbstractController
         $this->getEm()->persist($retryJob);
         $this->getEm()->flush();
 
-        $url = $this->generateUrl('jms_jobs_details', array('id' => $retryJob->getId()));
+        $url = $this->generateUrl('jms_jobs_details', ['id' => $retryJob->getId()]);
 
         return new RedirectResponse($url, 201);
     }

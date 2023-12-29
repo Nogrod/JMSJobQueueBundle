@@ -19,17 +19,9 @@ class ScheduleCommand extends Command
 {
     protected static $defaultName = 'jms-job-queue:schedule';
 
-    private $registry;
-    private $schedulers;
-    private $cronCommands;
-
-    public function __construct(ManagerRegistry $managerRegistry, iterable $schedulers, iterable $cronCommands)
+    public function __construct(private readonly ManagerRegistry $registry, private readonly iterable $schedulers, private readonly iterable $cronCommands)
     {
         parent::__construct();
-
-        $this->registry = $managerRegistry;
-        $this->schedulers = $schedulers;
-        $this->cronCommands = $cronCommands;
     }
 
     protected function configure()
@@ -98,7 +90,7 @@ class ScheduleCommand extends Command
                 continue;
             }
 
-            list($success, $newLastRunAt) = $this->acquireLock($name, $lastRunAt);
+            [$success, $newLastRunAt] = $this->acquireLock($name, $lastRunAt);
             $jobsLastRunAt[$name] = $newLastRunAt;
 
             if ($success) {
@@ -120,19 +112,12 @@ class ScheduleCommand extends Command
         $now = new \DateTime();
         $affectedRows = $con->executeUpdate(
             "UPDATE jms_cron_jobs SET lastRunAt = :now WHERE command = :command AND lastRunAt = :lastRunAt",
-            array(
-                'now' => $now,
-                'command' => $commandName,
-                'lastRunAt' => $lastRunAt,
-            ),
-            array(
-                'now' => 'datetime',
-                'lastRunAt' => 'datetime',
-            )
+            ['now' => $now, 'command' => $commandName, 'lastRunAt' => $lastRunAt],
+            ['now' => 'datetime', 'lastRunAt' => 'datetime']
         );
 
         if ($affectedRows > 0) {
-            return array(true, $now);
+            return [true, $now];
         }
 
         /** @var CronJob $cronJob */
@@ -141,7 +126,7 @@ class ScheduleCommand extends Command
             ->setHint(Query::HINT_REFRESH, true)
             ->getSingleResult();
 
-        return array(false, $cronJob->getLastRunAt());
+        return [false, $cronJob->getLastRunAt()];
     }
 
     private function populateJobSchedulers()
@@ -168,7 +153,7 @@ class ScheduleCommand extends Command
 
     private function populateJobsLastRunAt(EntityManager $em, array $jobSchedulers)
     {
-        $jobsLastRunAt = array();
+        $jobsLastRunAt = [];
 
         foreach ($em->getRepository(CronJob::class)->findAll() as $job) {
             /** @var CronJob $job */

@@ -2,7 +2,7 @@
 
 namespace JMS\JobQueueBundle\Console;
 
-declare(ticks = 10000000);
+declare(ticks = 10_000_000);
 
 use Doctrine\DBAL\Statement;
 use Doctrine\DBAL\Types\Type;
@@ -33,7 +33,7 @@ class Application extends BaseApplication
         $kernel->boot();
         if ($kernel->getContainer()->getParameter('jms_job_queue.statistics')) {
             $this->insertStatStmt = "INSERT INTO jms_job_statistics (job_id, characteristic, createdAt, charValue) VALUES (:jobId, :name, :createdAt, :value)";
-            register_tick_function(array($this, 'onTick'));
+            register_tick_function($this->onTick(...));
         }
     }
 
@@ -59,9 +59,7 @@ class Application extends BaseApplication
             return;
         }
 
-        $characteristics = array(
-            'memory' => memory_get_usage(),
-        );
+        $characteristics = ['memory' => memory_get_usage()];
 
         if(!$this->insertStatStmt instanceof Statement){
             $this->insertStatStmt = $this->getConnection()->prepare($this->insertStatStmt);
@@ -85,18 +83,8 @@ class Application extends BaseApplication
 
         $this->getConnection()->executeUpdate(
             "UPDATE jms_jobs SET stackTrace = :trace, memoryUsage = :memoryUsage, memoryUsageReal = :memoryUsageReal WHERE id = :id",
-            array(
-                'id' => $jobId,
-                'memoryUsage' => memory_get_peak_usage(),
-                'memoryUsageReal' => memory_get_peak_usage(true),
-                'trace' => serialize($ex ? FlattenException::create($ex) : null),
-            ),
-            array(
-                'id' => \PDO::PARAM_INT,
-                'memoryUsage' => \PDO::PARAM_INT,
-                'memoryUsageReal' => \PDO::PARAM_INT,
-                'trace' => \PDO::PARAM_LOB,
-            )
+            ['id' => $jobId, 'memoryUsage' => memory_get_peak_usage(), 'memoryUsageReal' => memory_get_peak_usage(true), 'trace' => serialize($ex instanceof \Exception ? FlattenException::create($ex) : null)],
+            ['id' => \PDO::PARAM_INT, 'memoryUsage' => \PDO::PARAM_INT, 'memoryUsageReal' => \PDO::PARAM_INT, 'trace' => \PDO::PARAM_LOB]
         );
     }
 

@@ -14,15 +14,12 @@ class CronJob
     /** @ORM\Id @ORM\Column(type = "integer", options = {"unsigned": true}) @ORM\GeneratedValue(strategy="AUTO") */
     private $id;
 
-    /** @ORM\Column(type = "string", length = 200, unique = true) */
-    private $command;
-
     /** @ORM\Column(type = "datetime", name = "lastRunAt") */
     private $lastRunAt;
 
-    public function __construct($command)
+    public function __construct(/** @ORM\Column(type = "string", length = 200, unique = true) */
+    private $command)
     {
-        $this->command = $command;
         $this->lastRunAt = new \DateTime();
     }
 

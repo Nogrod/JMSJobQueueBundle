@@ -19,16 +19,12 @@ use JMS\JobQueueBundle\Entity\Job;
  *
  * @author Johannes M. Schmitt <schmittjoh@gmail.com>
  */
-class PersistentRelatedEntitiesCollection implements Collection, Selectable
+class PersistentRelatedEntitiesCollection implements Collection, Selectable, \Stringable
 {
-    private $registry;
-    private $job;
     private $entities;
 
-    public function __construct(ManagerRegistry $registry, Job $job)
+    public function __construct(private readonly ManagerRegistry $registry, private readonly Job $job)
     {
-        $this->registry = $registry;
-        $this->job = $job;
     }
 
     /**
@@ -132,7 +128,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @see containsKey()
      *
-     * @param mixed $offset
      * @return bool
      */
     public function offsetExists(mixed $offset): bool
@@ -147,7 +142,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @see get()
      *
-     * @param mixed $offset
      * @return mixed
      */
     public function offsetGet(mixed $offset): mixed
@@ -163,8 +157,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      * @see add()
      * @see set()
      *
-     * @param mixed $offset
-     * @param mixed $value
      * @return bool
      */
     public function offsetSet(mixed $offset, mixed $value): void
@@ -177,7 +169,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @see remove()
      *
-     * @param mixed $offset
      * @return mixed
      */
     public function offsetUnset(mixed $offset): void
@@ -211,14 +202,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
     public function contains($element)
     {
         $this->initialize();
-
-        foreach ($this->entities as $collectionElement) {
-            if ($element === $collectionElement) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($element, $this->entities, true);
     }
 
     /**
@@ -264,11 +248,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
     public function get($key)
     {
         $this->initialize();
-
-        if (isset($this->entities[$key])) {
-            return $this->entities[$key];
-        }
-        return null;
+        return $this->entities[$key] ?? null;
     }
 
     /**
@@ -421,7 +401,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
     {
         $this->initialize();
 
-        $coll1 = $coll2 = array();
+        $coll1 = $coll2 = [];
         foreach ($this->entities as $key => $element) {
             if ($p($key, $element)) {
                 $coll1[$key] = $element;
@@ -429,7 +409,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
                 $coll2[$key] = $element;
             }
         }
-        return array(new ArrayCollection($coll1), new ArrayCollection($coll2));
+        return [new ArrayCollection($coll1), new ArrayCollection($coll2)];
     }
 
     /**
@@ -437,9 +417,9 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
      *
      * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
-        return __CLASS__ . '@' . spl_object_hash($this);
+        return self::class . '@' . spl_object_hash($this);
     }
 
     /**
@@ -482,7 +462,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
         $expr     = $criteria->getWhereExpression();
         $filtered = $this->entities;
 
-        if ($expr) {
+        if ($expr !== null) {
             $visitor  = new ClosureExpressionVisitor();
             $filter   = $visitor->dispatch($expr);
             $filtered = array_filter($filtered, $filter);
@@ -514,20 +494,20 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable
         }
 
         $con = $this->registry->getManagerForClass('JMSJobQueueBundle:Job')->getConnection();
-        $entitiesPerClass = array();
+        $entitiesPerClass = [];
         $count = 0;
         foreach ($con->query("SELECT related_class, related_id FROM jms_job_related_entities WHERE job_id = ".$this->job->getId()) as $data) {
             $count += 1;
-            $entitiesPerClass[$data['related_class']][] = json_decode($data['related_id'], true);
+            $entitiesPerClass[$data['related_class']][] = json_decode((string) $data['related_id'], true);
         }
 
         if (0 === $count) {
-            $this->entities = array();
+            $this->entities = [];
 
             return;
         }
 
-        $entities = array();
+        $entities = [];
         foreach ($entitiesPerClass as $className => $ids) {
             $em = $this->registry->getManagerForClass($className);
             $qb = $em->createQueryBuilder()
