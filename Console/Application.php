@@ -7,6 +7,7 @@ declare(ticks = 10_000_000);
 use Doctrine\DBAL\Statement;
 use Doctrine\DBAL\Types\Type;
 
+use JMS\JobQueueBundle\Entity\Job;
 use Symfony\Bundle\FrameworkBundle\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -90,6 +91,6 @@ class Application extends BaseApplication
 
     private function getConnection()
     {
-        return $this->getKernel()->getContainer()->get('doctrine')->getManagerForClass('JMSJobQueueBundle:Job')->getConnection();
+        return $this->getKernel()->getContainer()->get('doctrine')->getManagerForClass(Job::class)->getConnection();
     }
 }

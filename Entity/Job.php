@@ -22,7 +22,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\JobQueueBundle\Exception\InvalidStateTransitionException;
 use JMS\JobQueueBundle\Exception\LogicException;
-use Symfony\Component\Debug\Exception\FlattenException;
+use Symfony\Component\ErrorHandler\Exception\FlattenException;
 
 /**
  * @ORM\Entity
@@ -164,6 +164,12 @@ class Job implements \Stringable
     /** @ORM\Column(type = "integer", name="memoryUsageReal", nullable = true, options = {"unsigned": true}) */
     private $memoryUsageReal;
 
+    /** @ORM\Column(type = "string") */
+    private $command;
+
+    /** @ORM\Column(type = "json") */
+    private array $args = [];
+
     /**
      * This may store any entities which are related to this job, and are
      * managed by Doctrine.
@@ -187,9 +193,7 @@ class Job implements \Stringable
         return [self::STATE_NEW, self::STATE_PENDING, self::STATE_CANCELED, self::STATE_RUNNING, self::STATE_FINISHED, self::STATE_FAILED, self::STATE_TERMINATED, self::STATE_INCOMPLETE];
     }
 
-    public function __construct(/** @ORM\Column(type = "string") */
-    private $command, /** @ORM\Column(type = "json") */
-    private array $args = [], $confirmed = true, $queue = self::DEFAULT_QUEUE, $priority = self::PRIORITY_DEFAULT)
+    public function __construct($command, $args = [], $confirmed = true, $queue = self::DEFAULT_QUEUE, $priority = self::PRIORITY_DEFAULT)
     {
         if (trim((string) $queue) === '') {
             throw new \InvalidArgumentException('$queue must not be empty.');
@@ -197,6 +201,8 @@ class Job implements \Stringable
         if (strlen((string) $queue) > self::MAX_QUEUE_LENGTH) {
             throw new \InvalidArgumentException(sprintf('The maximum queue length is %d, but got "%s" (%d chars).', self::MAX_QUEUE_LENGTH, $queue, strlen((string) $queue)));
         }
+        $this->command = $command;
+        $this->args = $args;
         $this->state = $confirmed ? self::STATE_PENDING : self::STATE_NEW;
         $this->queue = $queue;
         $this->priority = $priority * -1;

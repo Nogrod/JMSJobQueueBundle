@@ -15,8 +15,10 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class JobController extends AbstractController
 {
-    public function __construct(private readonly JobManager $jobManager)
-    {
+    public function __construct(
+        private readonly JobManager $jobManager,
+        private readonly ManagerRegistry $managerRegistry
+    ) {
     }
 
     /**
@@ -27,7 +29,7 @@ class JobController extends AbstractController
         $jobFilter = JobFilter::fromRequest($request);
 
         $qb = $this->getEm()->createQueryBuilder();
-        $qb->select('j')->from('JMSJobQueueBundle:Job', 'j')
+        $qb->select('j')->from(Job::class, 'j')
             ->where($qb->expr()->isNull('j.originalJob'))
             ->orderBy('j.id', 'desc');
 
@@ -69,7 +71,7 @@ class JobController extends AbstractController
         $relatedEntities = [];
         foreach ($job->getRelatedEntities() as $entity) {
             $class = ClassUtils::getClass($entity);
-            $relatedEntities[] = ['class' => $class, 'id' => json_encode($this->getDoctrine()->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)), 'raw' => $entity];
+            $relatedEntities[] = ['class' => $class, 'id' => json_encode($this->managerRegistry->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)), 'raw' => $entity];
         }
 
         $statisticData = $statisticOptions = [];
@@ -137,7 +139,7 @@ class JobController extends AbstractController
 
     private function getEm(): EntityManagerInterface
     {
-        return $this->getDoctrine()->getManagerForClass(Job::class);
+        return $this->managerRegistry->getManagerForClass(Job::class);
     }
 
     private function getRepo(): JobManager

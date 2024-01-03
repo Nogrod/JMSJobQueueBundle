@@ -19,12 +19,14 @@
 namespace JMS\JobQueueBundle\Command;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ObjectManager;
 use JMS\JobQueueBundle\Entity\Job;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
 use JMS\JobQueueBundle\Event\NewOutputEvent;
 use JMS\JobQueueBundle\Event\StateChangeEvent;
 use JMS\JobQueueBundle\Exception\InvalidArgumentException;
 use Symfony\Bridge\Doctrine\ManagerRegistry;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -33,7 +35,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
-#[\Symfony\Component\Console\Attribute\AsCommand('jms-job-queue:run', 'Runs jobs from the queue.')]
+#[AsCommand('jms-job-queue:run', 'Runs jobs from the queue.')]
 class RunCommand extends Command
 {
     /** @var string */
@@ -412,8 +414,8 @@ class RunCommand extends Command
         return $args;
     }
 
-    private function getEntityManager(): EntityManagerInterface
+    private function getEntityManager(): ObjectManager
     {
-        return /** @var EntityManagerInterface */ $this->registry->getManagerForClass('JMSJobQueueBundle:Job');
+        return $this->registry->getManagerForClass(Job::class);
     }
 }

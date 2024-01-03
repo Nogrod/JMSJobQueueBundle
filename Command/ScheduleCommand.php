@@ -10,12 +10,13 @@ use JMS\JobQueueBundle\Cron\CommandScheduler;
 use JMS\JobQueueBundle\Cron\JobScheduler;
 use JMS\JobQueueBundle\Entity\CronJob;
 use JMS\JobQueueBundle\Entity\Job;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[\Symfony\Component\Console\Attribute\AsCommand('jms-job-queue:schedule', 'Schedules jobs at defined intervals')]
+#[AsCommand('jms-job-queue:schedule', 'Schedules jobs at defined intervals')]
 class ScheduleCommand extends Command
 {
     public function __construct(private readonly ManagerRegistry $registry, private readonly iterable $schedulers, private readonly iterable $cronCommands)
@@ -66,9 +67,9 @@ class ScheduleCommand extends Command
 
             $this->scheduleJobs($output, $jobSchedulers, $jobsLastRunAt);
 
-            $timeToWait = microtime(true) - $lastRunAt + $minJobInterval;
+            $timeToWait = (int) ((microtime(true) - $lastRunAt + $minJobInterval) * 1E6);
             if ($timeToWait > 0) {
-                usleep($timeToWait * 1E6);
+                usleep($timeToWait);
             }
         }
 
@@ -108,7 +109,7 @@ class ScheduleCommand extends Command
         $con = $em->getConnection();
 
         $now = new \DateTime();
-        $affectedRows = $con->executeUpdate(
+        $affectedRows = $con->executeStatement(
             "UPDATE jms_cron_jobs SET lastRunAt = :now WHERE command = :command AND lastRunAt = :lastRunAt",
             ['now' => $now, 'command' => $commandName, 'lastRunAt' => $lastRunAt],
             ['now' => 'datetime', 'lastRunAt' => 'datetime']
