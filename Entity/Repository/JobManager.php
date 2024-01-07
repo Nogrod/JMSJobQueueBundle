@@ -41,7 +41,7 @@ class JobManager
     {
     }
 
-    public function findJob($command, array $args = [])
+    public function findJob(string $command, array $args = []): ?Job
     {
         return $this->getJobManager()->createQuery("SELECT j FROM ".Job::class." j WHERE j.command = :command AND j.args = :args")
             ->setParameter('command', $command)
@@ -50,7 +50,7 @@ class JobManager
             ->getOneOrNullResult();
     }
 
-    public function getJob($command, array $args = [])
+    public function getJob(string $command, array $args = []): Job
     {
         if (null !== $job = $this->findJob($command, $args)) {
             return $job;
@@ -59,7 +59,7 @@ class JobManager
         throw new \RuntimeException(sprintf('Found no job for command "%s" with args "%s".', $command, json_encode($args)));
     }
 
-    public function getOrCreateIfNotExists($command, array $args = [])
+    public function getOrCreateIfNotExists(string $command, array $args = []): Job
     {
         if (null !== $job = $this->findJob($command, $args)) {
             return $job;
@@ -89,7 +89,7 @@ class JobManager
         return $firstJob;
     }
 
-    public function findStartableJob($workerName, array &$excludedIds = [], $excludedQueues = [], $restrictedQueues = [])
+    public function findStartableJob(string $workerName, array &$excludedIds = [], array $excludedQueues = [], array $restrictedQueues = []): ?Job
     {
         while (null !== $job = $this->findPendingJob($excludedIds, $excludedQueues, $restrictedQueues)) {
             if ($job->isStartable() && $this->acquireLock($workerName, $job)) {
@@ -107,7 +107,7 @@ class JobManager
         return null;
     }
 
-    private function acquireLock($workerName, Job $job)
+    private function acquireLock(string $workerName, Job $job): bool
     {
         $affectedRows = $this->getJobManager()->getConnection()->executeStatement(
             "UPDATE jms_jobs SET workerName = :worker WHERE id = :id AND workerName IS NULL",
@@ -186,7 +186,7 @@ class JobManager
         return [$relClass, json_encode($relId)];
     }
 
-    public function findPendingJob(array $excludedIds = [], array $excludedQueues = [], array $restrictedQueues = [])
+    public function findPendingJob(array $excludedIds = [], array $excludedQueues = [], array $restrictedQueues = []): ?Job
     {
         /** @var QueryBuilder $qb */
         $qb = $this->getJobManager()->createQueryBuilder();
@@ -211,12 +211,12 @@ class JobManager
 
         if ($excludedQueues !== []) {
             $conditions[] = $qb->expr()->notIn('j.queue', ':excludedQueues');
-            $qb->setParameter('excludedQueues', $excludedQueues, ArrayParameterType::INTEGER);
+            $qb->setParameter('excludedQueues', $excludedQueues, ArrayParameterType::STRING);
         }
 
         if ($restrictedQueues !== []) {
             $conditions[] = $qb->expr()->in('j.queue', ':restrictedQueues');
-            $qb->setParameter('restrictedQueues', $restrictedQueues, ArrayParameterType::INTEGER);
+            $qb->setParameter('restrictedQueues', $restrictedQueues, ArrayParameterType::STRING);
         }
 
         $qb->where($qb->expr()->andX(...$conditions));

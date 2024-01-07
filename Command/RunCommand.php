@@ -132,7 +132,7 @@ class RunCommand extends Command
         return 0;
     }
 
-    private function runJobs($workerName, $startTime, $maxRuntime, $idleTime, $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions)
+    private function runJobs(string $workerName, $startTime, int $maxRuntime, int $idleTime, int $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions)
     {
         $hasPcntl = extension_loaded('pcntl');
 
@@ -190,7 +190,7 @@ class RunCommand extends Command
         });
     }
 
-    private function startJobs($workerName, $idleTime, $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions)
+    private function startJobs(string $workerName, int $idleTime, int $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions)
     {
         $excludedIds = [];
         while (count($this->runningJobs) < $maxJobs) {
@@ -211,7 +211,7 @@ class RunCommand extends Command
         }
     }
 
-    private function getExcludedQueues(array $queueOptionsDefaults, array $queueOptions, $maxConcurrentJobs)
+    private function getExcludedQueues(array $queueOptionsDefaults, array $queueOptions, int $maxConcurrentJobs): array
     {
         $excludedQueues = [];
         foreach ($this->getRunningJobsPerQueue() as $queue => $count) {
@@ -223,7 +223,7 @@ class RunCommand extends Command
         return $excludedQueues;
     }
 
-    private function getMaxConcurrentJobs($queue, array $queueOptionsDefaults, array $queueOptions, $maxConcurrentJobs)
+    private function getMaxConcurrentJobs($queue, array $queueOptionsDefaults, array $queueOptions, $maxConcurrentJobs): int
     {
         if (isset($queueOptions[$queue]['max_concurrent_jobs'])) {
             return (integer) $queueOptions[$queue]['max_concurrent_jobs'];
@@ -236,14 +236,11 @@ class RunCommand extends Command
         return $maxConcurrentJobs;
     }
 
-    private function getRunningJobsPerQueue()
+    private function getRunningJobsPerQueue(): array
     {
         $runningJobsPerQueue = [];
         foreach ($this->runningJobs as $jobDetails) {
-            /** @var Job $job */
-            $job = $jobDetails['job'];
-
-            $queue = $job->getQueue();
+            $queue = $jobDetails['job']->getQueue();
             if ( ! isset($runningJobsPerQueue[$queue])) {
                 $runningJobsPerQueue[$queue] = 0;
             }
@@ -253,7 +250,7 @@ class RunCommand extends Command
         return $runningJobsPerQueue;
     }
 
-    private function checkRunningJobs()
+    private function checkRunningJobs(): void
     {
         foreach ($this->runningJobs as $i => &$data) {
             $newOutput = substr((string) $data['process']->getOutput(), $data['output_pointer']);
@@ -347,7 +344,7 @@ class RunCommand extends Command
         $job->setState(Job::STATE_RUNNING);
         $em = $this->getEntityManager();
         $em->persist($job);
-        $em->flush($job);
+        $em->flush();
 
         $args = $this->getBasicCommandLineArgs();
         $args[] = $job->getCommand();
@@ -373,7 +370,7 @@ class RunCommand extends Command
      *
      * In such an error condition, these jobs are cleaned-up on restart of this command.
      */
-    private function cleanUpStaleJobs($workerName)
+    private function cleanUpStaleJobs(string $workerName): void
     {
         /** @var Job[] $staleJobs */
         $staleJobs = $this->getEntityManager()->createQuery("SELECT j FROM ".Job::class." j WHERE j.state = :running AND (j.workerName = :worker OR j.workerName IS NULL)")
