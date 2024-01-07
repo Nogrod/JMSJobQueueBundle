@@ -26,7 +26,7 @@ class ManyToAnyListener
 
     public function __construct(private readonly ManagerRegistry $registry)
     {
-        $this->ref = new \ReflectionProperty(\JMS\JobQueueBundle\Entity\Job::class, 'relatedEntities');
+        $this->ref = new \ReflectionProperty(Job::class, 'relatedEntities');
         $this->ref->setAccessible(true);
     }
 
@@ -77,7 +77,7 @@ class ManyToAnyListener
         $schema = $event->getSchema();
 
         // When using multiple entity managers ignore events that are triggered by other entity managers.
-        if ($event->getEntityManager()->getMetadataFactory()->isTransient(\JMS\JobQueueBundle\Entity\Job::class)) {
+        if ($event->getEntityManager()->getMetadataFactory()->isTransient(Job::class)) {
             return;
         }
 

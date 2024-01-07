@@ -3,6 +3,7 @@
 namespace JMS\JobQueueBundle\Entity\Listener;
 
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
+use JMS\JobQueueBundle\Entity\Job;
 
 class StatisticsListener
 {
@@ -11,7 +12,7 @@ class StatisticsListener
         $schema = $event->getSchema();
 
         // When using multiple entity managers ignore events that are triggered by other entity managers.
-        if ($event->getEntityManager()->getMetadataFactory()->isTransient(\JMS\JobQueueBundle\Entity\Job::class)) {
+        if ($event->getEntityManager()->getMetadataFactory()->isTransient(Job::class)) {
             return;
         }
 

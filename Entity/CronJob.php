@@ -17,9 +17,12 @@ class CronJob
     /** @ORM\Column(type = "datetime", name = "lastRunAt") */
     private $lastRunAt;
 
-    public function __construct(/** @ORM\Column(type = "string", length = 200, unique = true) */
-    private $command)
+    /** @ORM\Column(type = "string", length = 200, unique = true) */
+    private $command;
+
+    public function __construct($command)
     {
+        $this->command = $command;
         $this->lastRunAt = new \DateTime();
     }
 

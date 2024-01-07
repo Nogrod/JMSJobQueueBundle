@@ -19,6 +19,7 @@
 namespace JMS\JobQueueBundle\Entity\Repository;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\Proxy;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\DBAL\ArrayParameterType;
@@ -100,7 +101,7 @@ class JobManager
             // We do not want to have non-startable jobs floating around in
             // cache as they might be changed by another process. So, better
             // re-fetch them when they are not excluded anymore.
-            //$this->getJobManager()->detach($job);
+            $this->getJobManager()->detach($job);
         }
 
         return null;
@@ -155,7 +156,7 @@ class JobManager
 
         if ( $states !== []) {
             $sql .= " AND j.state IN (:states)";
-            $params->add(new Parameter('states', $states, Connection::PARAM_STR_ARRAY));
+            $params->add(new Parameter('states', $states, ArrayParameterType::STRING));
         }
 
         return $this->getJobManager()->createNativeQuery($sql, $rsm)
@@ -187,6 +188,7 @@ class JobManager
 
     public function findPendingJob(array $excludedIds = [], array $excludedQueues = [], array $restrictedQueues = [])
     {
+        /** @var QueryBuilder $qb */
         $qb = $this->getJobManager()->createQueryBuilder();
         $qb->select('j')->from(Job::class, 'j')
             ->orderBy('j.priority', 'ASC')
@@ -197,39 +199,40 @@ class JobManager
         $conditions[] = $qb->expr()->isNull('j.workerName');
 
         $conditions[] = $qb->expr()->lt('j.executeAfter', ':now');
-        $qb->setParameter(':now', new \DateTime(), 'datetime');
+        $qb->setParameter('now', new \DateTime(), 'datetime');
 
         $conditions[] = $qb->expr()->eq('j.state', ':state');
         $qb->setParameter('state', Job::STATE_PENDING);
 
-        if ( $excludedIds !== []) {
+        if ($excludedIds !== []) {
             $conditions[] = $qb->expr()->notIn('j.id', ':excludedIds');
             $qb->setParameter('excludedIds', $excludedIds, ArrayParameterType::INTEGER);
         }
 
-        if ( $excludedQueues !== []) {
+        if ($excludedQueues !== []) {
             $conditions[] = $qb->expr()->notIn('j.queue', ':excludedQueues');
             $qb->setParameter('excludedQueues', $excludedQueues, ArrayParameterType::INTEGER);
         }
 
-        if ( $restrictedQueues !== []) {
+        if ($restrictedQueues !== []) {
             $conditions[] = $qb->expr()->in('j.queue', ':restrictedQueues');
             $qb->setParameter('restrictedQueues', $restrictedQueues, ArrayParameterType::INTEGER);
         }
 
-        $qb->where(call_user_func_array([$qb->expr(), 'andX'], $conditions));
+        $qb->where($qb->expr()->andX(...$conditions));
 
         return $qb->getQuery()->setMaxResults(1)->getOneOrNullResult();
     }
 
     public function closeJob(Job $job, $finalState)
     {
-        $this->getJobManager()->getConnection()->beginTransaction();
+        $objectManager = $this->getJobManager();
+        $objectManager->getConnection()->beginTransaction();
         try {
             $visited = [];
             $this->closeJobInternal($job, $finalState, $visited);
-            $this->getJobManager()->flush();
-            $this->getJobManager()->getConnection()->commit();
+            $objectManager->flush();
+            $objectManager->getConnection()->commit();
 
             // Clean-up entity manager to allow for garbage collection to kick in.
             foreach ($visited as $job) {
@@ -239,10 +242,10 @@ class JobManager
                     continue;
                 }
 
-                //$this->getJobManager()->detach($job);
+                $objectManager->detach($job);
             }
         } catch (\Exception $ex) {
-            $this->getJobManager()->getConnection()->rollback();
+            $objectManager->getConnection()->rollback();
 
             throw $ex;
         }

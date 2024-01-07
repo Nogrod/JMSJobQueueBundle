@@ -168,7 +168,7 @@ class Job implements \Stringable
     private $command;
 
     /** @ORM\Column(type = "json") */
-    private array $args = [];
+    private $args = [];
 
     /**
      * This may store any entities which are related to this job, and are
@@ -193,7 +193,7 @@ class Job implements \Stringable
         return [self::STATE_NEW, self::STATE_PENDING, self::STATE_CANCELED, self::STATE_RUNNING, self::STATE_FINISHED, self::STATE_FAILED, self::STATE_TERMINATED, self::STATE_INCOMPLETE];
     }
 
-    public function __construct($command, $args = [], $confirmed = true, $queue = self::DEFAULT_QUEUE, $priority = self::PRIORITY_DEFAULT)
+    public function __construct($command, array $args = [], $confirmed = true, $queue = self::DEFAULT_QUEUE, $priority = self::PRIORITY_DEFAULT)
     {
         if (trim((string) $queue) === '') {
             throw new \InvalidArgumentException('$queue must not be empty.');

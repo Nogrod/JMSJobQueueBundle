@@ -7,12 +7,13 @@ use Doctrine\DBAL\Connection;
 use Doctrine\ORM\EntityManager;
 use JMS\JobQueueBundle\Entity\Job;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-#[\Symfony\Component\Console\Attribute\AsCommand('jms-job-queue:clean-up', 'Cleans up jobs which exceed the maximum retention time.')]
+#[AsCommand('jms-job-queue:clean-up', 'Cleans up jobs which exceed the maximum retention time.')]
 class CleanUpCommand extends Command
 {
     public function __construct(private readonly ManagerRegistry $registry, private readonly JobManager $jobManager)
@@ -26,6 +27,7 @@ class CleanUpCommand extends Command
             ->addOption('max-retention', null, InputOption::VALUE_REQUIRED, 'The maximum retention time (value must be parsable by DateTime).', '7 days')
             ->addOption('max-retention-succeeded', null, InputOption::VALUE_REQUIRED, 'The maximum retention time for succeeded jobs (value must be parsable by DateTime).', '1 hour')
             ->addOption('per-call', null, InputOption::VALUE_REQUIRED, 'The maximum number of jobs to clean-up per call.', 1000)
+            ->addOption('jms-job-id', null, InputOption::VALUE_OPTIONAL, 'The JMS Job Id.')
         ;
     }
 
