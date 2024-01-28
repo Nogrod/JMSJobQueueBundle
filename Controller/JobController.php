@@ -21,7 +21,9 @@ class JobController extends AbstractController
     ) {
     }
 
-    #[Route(path: '/', name: 'jms_jobs_overview')]
+    /**
+     * @Route("/", name = "jms_jobs_overview")
+     */
     public function overview(Request $request): \Symfony\Component\HttpFoundation\Response
     {
         $jobFilter = JobFilter::fromRequest($request);
@@ -61,7 +63,9 @@ class JobController extends AbstractController
         return $this->render('@JMSJobQueue/Job/overview.html.twig', ['jobsWithError' => $lastJobsWithError, 'jobs' => array_slice($jobs, 0, $perPage), 'jobFilter' => $jobFilter, 'hasMore' => count($jobs) > $perPage, 'jobStates' => Job::getStates()]);
     }
 
-    #[Route(path: '/{id}', name: 'jms_jobs_details')]
+    /**
+     * @Route("/{id}", name = "jms_jobs_details")
+     */
     public function details(Job $job): \Symfony\Component\HttpFoundation\Response
     {
         $relatedEntities = [];
@@ -108,7 +112,9 @@ class JobController extends AbstractController
         return $this->render('@JMSJobQueue/Job/details.html.twig', ['job' => $job, 'relatedEntities' => $relatedEntities, 'incomingDependencies' => $this->getRepo()->getIncomingDependencies($job), 'statisticData' => $statisticData, 'statisticOptions' => $statisticOptions]);
     }
 
-    #[Route(path: '/{id}/retry', name: 'jms_jobs_retry_job')]
+    /**
+     * @Route("/{id}/retry", name = "jms_jobs_retry_job")
+     */
     public function retryJob(Job $job)
     {
         $state = $job->getState();
