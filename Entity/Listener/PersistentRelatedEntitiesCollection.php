@@ -104,10 +104,10 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
     /**
      * Removes an element with a specific key/index from the collection.
      *
-     * @param string|integer $key
+     * @param integer|string $key
      * @return object|null The removed element or NULL, if no element exists for the given key.
      */
-    public function remove($key)
+    public function remove(int|string $key)
     {
         throw new \LogicException('remove() is not supported.');
     }
@@ -118,7 +118,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * @param object $element The element to remove.
      * @return boolean TRUE if this collection contained the specified element, FALSE otherwise.
      */
-    public function removeElement($element)
+    public function removeElement(mixed $element)
     {
         throw new \LogicException('removeElement() is not supported.');
     }
@@ -182,7 +182,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * @param mixed $key The key to check for.
      * @return boolean TRUE if the given key/index exists, FALSE otherwise.
      */
-    public function containsKey($key)
+    public function containsKey(string|int $key)
     {
         $this->initialize();
 
@@ -199,7 +199,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * @return boolean TRUE if the given element is contained in the collection,
      *          FALSE otherwise.
      */
-    public function contains($element)
+    public function contains(mixed $element)
     {
         $this->initialize();
         return in_array($element, $this->entities, true);
@@ -232,7 +232,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * @param mixed $element The element to search for.
      * @return mixed The key/index of the element or FALSE if the element was not found.
      */
-    public function indexOf($element)
+    public function indexOf(mixed $element)
     {
         $this->initialize();
 
@@ -245,7 +245,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * @param mixed $key The key.
      * @return mixed The element or NULL, if no element exists for the given key.
      */
-    public function get($key)
+    public function get(string|int $key)
     {
         $this->initialize();
         return $this->entities[$key] ?? null;
@@ -298,7 +298,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * @param mixed $key
      * @param mixed $value
      */
-    public function set($key, $value)
+    public function set(string|int $key, mixed $value)
     {
         throw new \LogicException('set() is not supported.');
     }
@@ -309,7 +309,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * @param mixed $value
      * @return boolean Always TRUE.
      */
-    public function add($value)
+    public function add(mixed $value)
     {
         throw new \LogicException('Adding new entities is not supported after creation.');
     }
@@ -441,7 +441,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * @param int $length
      * @return array
      */
-    public function slice($offset, $length = null)
+    public function slice(int $offset, int|null $length = null)
     {
         $this->initialize();
 
@@ -533,5 +533,20 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
         }
 
         $this->entities = $entities;
+    }
+
+    public function findFirst(Closure $p)
+    {
+        foreach ($this->entities as $value) {
+            if ($p($value)) {
+                return $value;
+            }
+        }
+        return null;
+    }
+
+    public function reduce(Closure $func, mixed $initial = null)
+    {
+        return array_reduce($this->entities, $func, $initial);
     }
 }

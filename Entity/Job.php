@@ -19,13 +19,15 @@
 namespace JMS\JobQueueBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\JobQueueBundle\Exception\InvalidStateTransitionException;
 use JMS\JobQueueBundle\Exception\LogicException;
+use JMS\JobQueueBundle\Repository\JobRepository;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 
 /**
- * @ORM\Entity
+ * @ORM\Entity(repositoryClass=JobRepository::class)
  * @ORM\Table(name = "jms_jobs", indexes = {
  *     @ORM\Index("cmd_search_index", columns = {"command"}),
  *     @ORM\Index("sorting_index", columns = {"state", "priority", "id"}),
@@ -93,31 +95,31 @@ class Job implements \Stringable
     private $id;
 
     /** @ORM\Column(type = "string", length = 15) */
-    private $state;
+    private ?string $state = null;
 
     /** @ORM\Column(type = "string", length = Job::MAX_QUEUE_LENGTH) */
-    private $queue;
+    private ?string $queue = null;
 
     /** @ORM\Column(type = "smallint") */
-    private $priority = 0;
+    private ?int $priority = 0;
 
     /** @ORM\Column(type = "datetime", name="createdAt") */
-    private $createdAt;
+    private ?\DateTimeInterface $createdAt = null;
 
     /** @ORM\Column(type = "datetime", name="startedAt", nullable = true) */
-    private $startedAt;
+    private ?\DateTimeInterface $startedAt = null;
 
     /** @ORM\Column(type = "datetime", name="checkedAt", nullable = true) */
-    private $checkedAt;
+    private ?\DateTimeInterface $checkedAt = null;
 
     /** @ORM\Column(type = "string", name="workerName", length = 50, nullable = true) */
-    private $workerName;
+    private ?string $workerName = null;
 
     /** @ORM\Column(type = "datetime", name="executeAfter", nullable = true) */
-    private $executeAfter;
+    private ?\DateTimeInterface $executeAfter = null;
 
     /** @ORM\Column(type = "datetime", name="closedAt", nullable = true) */
-    private $closedAt;
+    private ?\DateTimeInterface $closedAt = null;
 
     /**
      * @ORM\ManyToMany(targetEntity = "Job", fetch = "EAGER")
@@ -125,50 +127,52 @@ class Job implements \Stringable
      *     joinColumns = { @ORM\JoinColumn(name = "source_job_id", referencedColumnName = "id") },
      *     inverseJoinColumns = { @ORM\JoinColumn(name = "dest_job_id", referencedColumnName = "id")}
      * )
+     * @var Collection<int, Job>
      */
-    private $dependencies;
+    private Collection $dependencies;
 
     /** @ORM\Column(type = "text", nullable = true) */
-    private $output;
+    private ?string $output = null;
 
     /** @ORM\Column(type = "text", name="errorOutput", nullable = true) */
-    private $errorOutput;
+    private ?string $errorOutput = null;
 
     /** @ORM\Column(type = "smallint", name="exitCode", nullable = true, options = {"unsigned": true}) */
-    private $exitCode;
+    private ?int $exitCode = null;
 
     /** @ORM\Column(type = "smallint", name="maxRuntime", options = {"unsigned": true}) */
-    private $maxRuntime = 0;
+    private ?int $maxRuntime = 0;
 
     /** @ORM\Column(type = "smallint", name="maxRetries", options = {"unsigned": true}) */
-    private $maxRetries = 0;
+    private ?int $maxRetries = 0;
 
     /**
      * @ORM\ManyToOne(targetEntity = "Job", inversedBy = "retryJobs")
      * @ORM\JoinColumn(name="originalJob_id", referencedColumnName="id")
      */
-    private $originalJob;
+    private ?Job $originalJob = null;
 
-    /** @ORM\OneToMany(targetEntity = "Job", mappedBy = "originalJob", cascade = {"persist", "remove", "detach", "refresh"}) */
-    private $retryJobs;
+    /** @ORM\OneToMany(targetEntity = "Job", mappedBy = "originalJob", cascade = {"persist", "remove", "detach", "refresh"})
+     * @var Collection<int, Job> */
+    private Collection $retryJobs;
 
     /** @ORM\Column(type = "jms_job_safe_object", name="stackTrace", nullable = true) */
     private $stackTrace;
 
     /** @ORM\Column(type = "smallint", nullable = true, options = {"unsigned": true}) */
-    private $runtime;
+    private ?int $runtime = null;
 
     /** @ORM\Column(type = "integer", name="memoryUsage", nullable = true, options = {"unsigned": true}) */
-    private $memoryUsage;
+    private ?int $memoryUsage = null;
 
     /** @ORM\Column(type = "integer", name="memoryUsageReal", nullable = true, options = {"unsigned": true}) */
-    private $memoryUsageReal;
+    private ?int $memoryUsageReal = null;
 
     /** @ORM\Column(type = "string") */
-    private $command;
+    private string $command;
 
     /** @ORM\Column(type = "json") */
-    private $args = [];
+    private array $args = [];
 
     /**
      * This may store any entities which are related to this job, and are
@@ -178,27 +182,34 @@ class Job implements \Stringable
      */
     private $relatedEntities;
 
-    public static function create($command, array $args = [], $confirmed = true, $queue = self::DEFAULT_QUEUE, $priority = self::PRIORITY_DEFAULT)
+    public static function create(string $command, array $args = [], bool $confirmed = true, string $queue = self::DEFAULT_QUEUE, string $priority = self::PRIORITY_DEFAULT): Job
     {
         return new self($command, $args, $confirmed, $queue, $priority);
     }
 
-    public static function isNonSuccessfulFinalState($state)
+    public static function isNonSuccessfulFinalState(string $state): bool
     {
         return in_array($state, [self::STATE_CANCELED, self::STATE_FAILED, self::STATE_INCOMPLETE, self::STATE_TERMINATED], true);
     }
 
-    public static function getStates()
+    public static function getStates(): array
     {
         return [self::STATE_NEW, self::STATE_PENDING, self::STATE_CANCELED, self::STATE_RUNNING, self::STATE_FINISHED, self::STATE_FAILED, self::STATE_TERMINATED, self::STATE_INCOMPLETE];
     }
 
-    public function __construct($command, array $args = [], $confirmed = true, $queue = self::DEFAULT_QUEUE, $priority = self::PRIORITY_DEFAULT)
+    /**
+     * @param string $command
+     * @param array $args
+     * @param true $confirmed
+     * @param string $queue
+     * @param int $priority
+     */
+    public function __construct(string $command, array $args = [], bool $confirmed = true, string $queue = self::DEFAULT_QUEUE, int $priority = self::PRIORITY_DEFAULT)
     {
-        if (trim((string) $queue) === '') {
+        if (trim($queue) === '') {
             throw new \InvalidArgumentException('$queue must not be empty.');
         }
-        if (strlen((string) $queue) > self::MAX_QUEUE_LENGTH) {
+        if (strlen($queue) > self::MAX_QUEUE_LENGTH) {
             throw new \InvalidArgumentException(sprintf('The maximum queue length is %d, but got "%s" (%d chars).', self::MAX_QUEUE_LENGTH, $queue, strlen((string) $queue)));
         }
         $this->command = $command;

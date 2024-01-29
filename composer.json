@@ -14,7 +14,7 @@
     "require": {
         "php": "^8.2",
         "symfony/framework-bundle": "^5.0 || ^6.0",
-        "doctrine/collections": "^1.8",
+        "doctrine/collections": "^1.8 || ^2.0",
         "doctrine/common": "^2.0 || ^3.0",
         "symfony/process": "^5.0 || ^6.0"
     },
@@ -33,7 +33,7 @@
         "symfony/validator": "*",
         "phpunit/phpunit": "^8.0",
         "symfony/intl": "*",
-        "rector/rector": "^0.18.13"
+        "rector/rector": "^0.19"
     },
     "suggest": {
         "sensio/framework-extra-bundle": "Required when using the webinterface.",

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use Rector\CodeQuality\Rector\Class_\InlineConstructorDefaultToPropertyRector;
+use Rector\Doctrine\Set\DoctrineSetList;
 use Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector;
 use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\LevelSetList;
@@ -37,6 +38,8 @@ return static function (RectorConfig $rectorConfig): void {
         //LevelSetList::UP_TO_PHP_80
         LevelSetList::UP_TO_PHP_82,
         //SetList::CODE_QUALITY,
+
+        DoctrineSetList::DOCTRINE_CODE_QUALITY,
 
         SymfonySetList::SYMFONY_64,
         SymfonySetList::SYMFONY_CODE_QUALITY,

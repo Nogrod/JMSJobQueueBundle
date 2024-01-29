@@ -15,23 +15,23 @@ class CronJob
     private $id;
 
     /** @ORM\Column(type = "datetime", name = "lastRunAt") */
-    private $lastRunAt;
+    private ?\DateTimeInterface $lastRunAt;
 
     /** @ORM\Column(type = "string", length = 200, unique = true) */
-    private $command;
+    private string $command;
 
-    public function __construct($command)
+    public function __construct(string $command)
     {
         $this->command = $command;
         $this->lastRunAt = new \DateTime();
     }
 
-    public function getCommand()
+    public function getCommand(): string
     {
         return $this->command;
     }
 
-    public function getLastRunAt()
+    public function getLastRunAt(): \DateTime|\DateTimeInterface|null
     {
         return $this->lastRunAt;
     }
