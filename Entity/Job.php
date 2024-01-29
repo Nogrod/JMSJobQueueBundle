@@ -156,7 +156,7 @@ class Job implements \Stringable
      * @var Collection<int, Job> */
     private Collection $retryJobs;
 
-    /** @ORM\Column(type = "jms_job_safe_object", name="stackTrace", nullable = true) */
+    /** @ORM\Column(type = "json", name="stackTrace", nullable = true) */
     private $stackTrace;
 
     /** @ORM\Column(type = "smallint", nullable = true, options = {"unsigned": true}) */
