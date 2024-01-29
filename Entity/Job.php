@@ -23,11 +23,10 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use JMS\JobQueueBundle\Exception\InvalidStateTransitionException;
 use JMS\JobQueueBundle\Exception\LogicException;
-use JMS\JobQueueBundle\Repository\JobRepository;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 
 /**
- * @ORM\Entity(repositoryClass=JobRepository::class)
+ * @ORM\Entity
  * @ORM\Table(name = "jms_jobs", indexes = {
  *     @ORM\Index("cmd_search_index", columns = {"command"}),
  *     @ORM\Index("sorting_index", columns = {"state", "priority", "id"}),
