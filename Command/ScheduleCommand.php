@@ -24,7 +24,7 @@ class ScheduleCommand extends Command
         parent::__construct();
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->addOption('max-runtime', null, InputOption::VALUE_REQUIRED, 'The maximum runtime of this command.', 3600)
@@ -80,7 +80,7 @@ class ScheduleCommand extends Command
      * @param JobScheduler[] $jobSchedulers
      * @param \DateTime[] $jobsLastRunAt
      */
-    private function scheduleJobs(OutputInterface $output, array $jobSchedulers, array &$jobsLastRunAt)
+    private function scheduleJobs(OutputInterface $output, array $jobSchedulers, array &$jobsLastRunAt): void
     {
         foreach ($jobSchedulers as $name => $scheduler) {
             $lastRunAt = $jobsLastRunAt[$name];
@@ -102,7 +102,7 @@ class ScheduleCommand extends Command
         }
     }
 
-    private function acquireLock($commandName, \DateTime $lastRunAt)
+    private function acquireLock($commandName, \DateTime $lastRunAt): array
     {
         /** @var ObjectManager $em */
         $em = $this->registry->getManagerForClass(CronJob::class);
@@ -128,7 +128,7 @@ class ScheduleCommand extends Command
         return [false, $cronJob->getLastRunAt()];
     }
 
-    private function populateJobSchedulers()
+    private function populateJobSchedulers(): array
     {
         $schedulers = [];
         foreach ($this->schedulers as $scheduler) {
@@ -150,7 +150,7 @@ class ScheduleCommand extends Command
         return $schedulers;
     }
 
-    private function populateJobsLastRunAt(ObjectManager $em, array $jobSchedulers)
+    private function populateJobsLastRunAt(ObjectManager $em, array $jobSchedulers): array
     {
         $jobsLastRunAt = [];
 

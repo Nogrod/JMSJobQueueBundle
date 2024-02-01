@@ -24,6 +24,7 @@ use JMS\JobQueueBundle\Entity\Repository\JobManager;
 use JMS\JobQueueBundle\Event\NewOutputEvent;
 use JMS\JobQueueBundle\Event\StateChangeEvent;
 use JMS\JobQueueBundle\Exception\InvalidArgumentException;
+use Random\RandomException;
 use Symfony\Bridge\Doctrine\ManagerRegistry;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -57,7 +58,7 @@ class RunCommand extends Command
         parent::__construct();
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->addOption('max-runtime', 'r', InputOption::VALUE_REQUIRED, 'The maximum runtime in seconds.', 900)
@@ -131,7 +132,19 @@ class RunCommand extends Command
         return 0;
     }
 
-    private function runJobs(string $workerName, $startTime, int $maxRuntime, int $idleTime, int $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions)
+    /**
+     * @param string $workerName
+     * @param $startTime
+     * @param int $maxRuntime
+     * @param int $idleTime
+     * @param int $maxJobs
+     * @param array $restrictedQueues
+     * @param array $queueOptionsDefaults
+     * @param array $queueOptions
+     * @return void
+     * @throws RandomException
+     */
+    private function runJobs(string $workerName, $startTime, int $maxRuntime, int $idleTime, int $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions): void
     {
         $hasPcntl = extension_loaded('pcntl');
 
@@ -178,7 +191,7 @@ class RunCommand extends Command
         }
     }
 
-    private function setupSignalHandlers()
+    private function setupSignalHandlers(): void
     {
         pcntl_signal(SIGTERM, function() {
             if ($this->verbose) {
@@ -189,7 +202,7 @@ class RunCommand extends Command
         });
     }
 
-    private function startJobs(string $workerName, int $idleTime, int $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions)
+    private function startJobs(string $workerName, int $idleTime, int $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions): void
     {
         $excludedIds = [];
         while (count($this->runningJobs) < $maxJobs) {
@@ -222,6 +235,13 @@ class RunCommand extends Command
         return $excludedQueues;
     }
 
+    /**
+     * @param $queue
+     * @param array $queueOptionsDefaults
+     * @param array $queueOptions
+     * @param $maxConcurrentJobs
+     * @return int
+     */
     private function getMaxConcurrentJobs($queue, array $queueOptionsDefaults, array $queueOptions, $maxConcurrentJobs): int
     {
         if (isset($queueOptions[$queue]['max_concurrent_jobs'])) {
@@ -324,7 +344,7 @@ class RunCommand extends Command
         gc_collect_cycles();
     }
 
-    private function startJob(Job $job)
+    private function startJob(Job $job): void
     {
         $event = new StateChangeEvent($job, Job::STATE_RUNNING);
         $this->dispatcher->dispatch($event, 'jms_job_queue.job_state_change');

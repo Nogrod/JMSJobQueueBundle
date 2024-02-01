@@ -20,7 +20,7 @@ class MarkJobIncompleteCommand extends Command
         parent::__construct();
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->addArgument('job-id', InputArgument::REQUIRED, 'The ID of the Job.')

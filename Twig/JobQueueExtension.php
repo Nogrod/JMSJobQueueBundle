@@ -13,22 +13,27 @@ class JobQueueExtension extends AbstractExtension
     {
     }
 
-    public function getTests()
+    public function getTests(): array
     {
         return [new TwigTest('jms_job_queue_linkable', $this->isLinkable(...))];
     }
 
-    public function getFunctions()
+    public function getFunctions(): array
     {
         return [new TwigFunction('jms_job_queue_path', $this->generatePath(...), ['is_safe' => ['html' => true]])];
     }
 
-    public function getFilters()
+    public function getFilters(): array
     {
         return [new TwigFilter('jms_job_queue_linkname', $this->getLinkname(...)), new TwigFilter('jms_job_queue_args', $this->formatArgs(...))];
     }
 
-    public function formatArgs(array $args, $maxLength = 60)
+    /**
+     * @param array $args
+     * @param $maxLength
+     * @return string
+     */
+    public function formatArgs(array $args, $maxLength = 60): string
     {
         $str = '';
         $first = true;
@@ -51,7 +56,11 @@ class JobQueueExtension extends AbstractExtension
         return $str;
     }
 
-    public function isLinkable($entity)
+    /**
+     * @param $entity
+     * @return bool
+     */
+    public function isLinkable($entity): bool
     {
         foreach ($this->linkGenerators as $generator) {
             if ($generator->supports($entity)) {
@@ -62,6 +71,10 @@ class JobQueueExtension extends AbstractExtension
         return false;
     }
 
+    /**
+     * @param $entity
+     * @return mixed
+     */
     public function generatePath($entity)
     {
         foreach ($this->linkGenerators as $generator) {
@@ -73,6 +86,10 @@ class JobQueueExtension extends AbstractExtension
         throw new \RuntimeException(sprintf('The entity "%s" has no link generator.', $entity::class));
     }
 
+    /**
+     * @param $entity
+     * @return mixed
+     */
     public function getLinkname($entity)
     {
         foreach ($this->linkGenerators as $generator) {
@@ -84,7 +101,7 @@ class JobQueueExtension extends AbstractExtension
         throw new \RuntimeException(sprintf('The entity "%s" has no link generator.', $entity::class));
     }
 
-    public function getName()
+    public function getName(): string
     {
         return 'jms_job_queue';
     }

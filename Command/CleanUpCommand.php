@@ -21,7 +21,7 @@ class CleanUpCommand extends Command
         parent::__construct();
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->addOption('max-retention', null, InputOption::VALUE_REQUIRED, 'The maximum retention time (value must be parsable by DateTime).', '7 days')
@@ -43,7 +43,7 @@ class CleanUpCommand extends Command
         return 0;
     }
 
-    private function collectStaleJobs(EntityManager $em)
+    private function collectStaleJobs(EntityManager $em): void
     {
         foreach ($this->findStaleJobs($em) as $job) {
             if ($job->isRetried()) {
