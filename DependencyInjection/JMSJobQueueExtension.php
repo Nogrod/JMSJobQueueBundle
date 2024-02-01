@@ -62,5 +62,15 @@ class JMSJobQueueExtension extends Extension implements PrependExtensionInterfac
 
     public function prepend(ContainerBuilder $container): void
     {
+        $container->prependExtensionConfig('doctrine', [
+            'orm' => [
+                'mappings' => [
+                    'JMSJobQueueBundle' => [
+                        'type' => 'attribute',
+                        'prefix' => 'JMS\JobQueueBundle',
+                    ],
+                ],
+            ],
+        ]);
     }
 }

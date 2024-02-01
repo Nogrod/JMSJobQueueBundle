@@ -8,7 +8,10 @@ use Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector;
 use Rector\Config\RectorConfig;
 use Rector\Set\ValueObject\LevelSetList;
 use Rector\Set\ValueObject\SetList;
+use Rector\Symfony\Set\SensiolabsSetList;
 use Rector\Symfony\Set\SymfonySetList;
+use Rector\Symfony\Symfony42\Rector\MethodCall\ContainerGetToConstructorInjectionRector;
+use Rector\Symfony\Symfony44\Rector\ClassMethod\ConsoleExecuteReturnIntRector;
 use Rector\Symfony\Symfony53\Rector\Class_\CommandDescriptionToPropertyRector;
 use Rector\Symfony\Symfony61\Rector\Class_\CommandPropertyToAttributeRector;
 
@@ -32,6 +35,8 @@ return static function (RectorConfig $rectorConfig): void {
     $rectorConfig->rule(ClassPropertyAssignToConstructorPromotionRector::class);
     $rectorConfig->rule(CommandDescriptionToPropertyRector::class);
     $rectorConfig->rule(CommandPropertyToAttributeRector::class);
+    $rectorConfig->rule(ConsoleExecuteReturnIntRector::class);
+    $rectorConfig->rule(ContainerGetToConstructorInjectionRector::class);
 
     // define sets of rules
     $rectorConfig->sets([
@@ -39,11 +44,15 @@ return static function (RectorConfig $rectorConfig): void {
         LevelSetList::UP_TO_PHP_82,
         //SetList::CODE_QUALITY,
 
-        DoctrineSetList::DOCTRINE_CODE_QUALITY,
-
         SymfonySetList::SYMFONY_64,
         SymfonySetList::SYMFONY_CODE_QUALITY,
         SymfonySetList::SYMFONY_CONSTRUCTOR_INJECTION,
+        SymfonySetList::ANNOTATIONS_TO_ATTRIBUTES,
 
+        SensiolabsSetList::ANNOTATIONS_TO_ATTRIBUTES,
+
+        DoctrineSetList::ANNOTATIONS_TO_ATTRIBUTES,
+        DoctrineSetList::DOCTRINE_DBAL_30,
+        DoctrineSetList::DOCTRINE_CODE_QUALITY,
     ]);
 };
