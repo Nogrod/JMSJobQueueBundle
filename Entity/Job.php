@@ -148,7 +148,7 @@ class Job implements \Stringable
     /**
      * @var Collection<int, Job> */
     #[ORM\OneToMany(mappedBy: 'originalJob', targetEntity: 'Job', cascade: ['persist', 'remove', 'detach', 'refresh'])]
-    private readonly Collection $retryJobs;
+    private Collection $retryJobs;
 
     #[ORM\Column(name: 'stackTrace', type: 'json', nullable: true)]
     private $stackTrace;
