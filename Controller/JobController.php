@@ -73,6 +73,7 @@ class JobController extends AbstractController
             $class = ClassUtils::getClass($entity);
             $relatedEntities[] = ['class' => $class, 'id' => json_encode($this->managerRegistry->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)), 'raw' => $entity];
         }
+        
         $statisticData = [];
         $statisticOptions = [];
         if ($this->getParameter('jms_job_queue.statistics')) {

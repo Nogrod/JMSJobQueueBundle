@@ -50,7 +50,7 @@ class InvalidStateTransitionException extends \InvalidArgumentException
         return $this->newState;
     }
 
-    public function getAllowedStates()
+    public function getAllowedStates(): array
     {
         return $this->allowedStates;
     }

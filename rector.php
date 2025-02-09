@@ -49,7 +49,7 @@ return RectorConfig::configure()
     ->withSets([
                    LevelSetList::UP_TO_PHP_84,
 
-                   SymfonySetList::SYMFONY_64,
+                   SymfonySetList::SYMFONY_72,
                    SymfonySetList::SYMFONY_CONSTRUCTOR_INJECTION,
 
                    DoctrineSetList::ANNOTATIONS_TO_ATTRIBUTES,
