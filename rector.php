@@ -53,7 +53,7 @@ return RectorConfig::configure()
                    SymfonySetList::SYMFONY_CONSTRUCTOR_INJECTION,
 
                    DoctrineSetList::ANNOTATIONS_TO_ATTRIBUTES,
-                   DoctrineSetList::DOCTRINE_DBAL_30,
+                   DoctrineSetList::DOCTRINE_DBAL_40,
                    DoctrineSetList::DOCTRINE_ORM_300,
                    DoctrineSetList::DOCTRINE_CODE_QUALITY,
                ])
