@@ -212,7 +212,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -370,7 +370,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
         $this->initialize();
 
         foreach ($this->entities as $key => $element) {
-            if ( ! $p($key, $element)) {
+            if (! $p($key, $element)) {
                 return false;
             }
         }
@@ -399,7 +399,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
                 $coll2[$key] = $element;
             }
         }
-        
+
         return [new ArrayCollection($coll1), new ArrayCollection($coll2)];
     }
 
@@ -529,7 +529,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
                 return $value;
             }
         }
-        
+
         return null;
     }
 

@@ -17,6 +17,7 @@ declare(strict_types=1);
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace JMS\JobQueueBundle\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -85,13 +86,13 @@ class Job implements \Stringable
      * in a state of FAILED.
      */
     final public const DEFAULT_QUEUE = 'default';
-    
+
     final public const MAX_QUEUE_LENGTH = 50;
 
     final public const PRIORITY_LOW = -5;
-    
+
     final public const PRIORITY_DEFAULT = 0;
-    
+
     final public const PRIORITY_HIGH = 5;
 
     #[ORM\Id, ORM\Column(type: Types::BIGINT, options: ['unsigned' => true]), ORM\GeneratedValue(strategy: 'AUTO')]
@@ -201,7 +202,7 @@ class Job implements \Stringable
         if (trim($queue) === '') {
             throw new \InvalidArgumentException('$queue must not be empty.');
         }
-        
+
         if (strlen($queue) > self::MAX_QUEUE_LENGTH) {
             throw new \InvalidArgumentException(sprintf('The maximum queue length is %d, but got "%s" (%d chars).', self::MAX_QUEUE_LENGTH, $queue, strlen($queue)));
         }
@@ -213,7 +214,7 @@ class Job implements \Stringable
         $this->createdAt = new \DateTime();
         $this->executeAfter = new \DateTime();
         $this->executeAfter = $this->executeAfter->modify('-1 second');
-        
+
         $this->dependencies = new ArrayCollection();
         $this->retryJobs = new ArrayCollection();
         $this->relatedEntities = new ArrayCollection();
@@ -286,7 +287,7 @@ class Job implements \Stringable
 
         switch ($this->state) {
             case self::STATE_NEW:
-                if ( ! in_array($newState, [self::STATE_PENDING, self::STATE_CANCELED], true)) {
+                if (! in_array($newState, [self::STATE_PENDING, self::STATE_CANCELED], true)) {
                     throw new InvalidStateTransitionException($this, $newState, [self::STATE_PENDING, self::STATE_CANCELED]);
                 }
 
@@ -297,7 +298,7 @@ class Job implements \Stringable
                 break;
 
             case self::STATE_PENDING:
-                if ( ! in_array($newState, [self::STATE_RUNNING, self::STATE_CANCELED], true)) {
+                if (! in_array($newState, [self::STATE_RUNNING, self::STATE_CANCELED], true)) {
                     throw new InvalidStateTransitionException($this, $newState, [self::STATE_RUNNING, self::STATE_CANCELED]);
                 }
 
@@ -311,7 +312,7 @@ class Job implements \Stringable
                 break;
 
             case self::STATE_RUNNING:
-                if ( ! in_array($newState, [self::STATE_FINISHED, self::STATE_FAILED, self::STATE_TERMINATED, self::STATE_INCOMPLETE])) {
+                if (! in_array($newState, [self::STATE_FINISHED, self::STATE_FAILED, self::STATE_TERMINATED, self::STATE_INCOMPLETE])) {
                     throw new InvalidStateTransitionException($this, $newState, [self::STATE_FINISHED, self::STATE_FAILED, self::STATE_TERMINATED, self::STATE_INCOMPLETE]);
                 }
 
@@ -385,7 +386,7 @@ class Job implements \Stringable
 
     public function addRelatedEntity($entity): void
     {
-        if ( ! is_object($entity)) {
+        if (! is_object($entity)) {
             throw new \RuntimeException('$entity must be an object.');
         }
 
@@ -426,7 +427,7 @@ class Job implements \Stringable
 
     public function setRuntime($time): void
     {
-        $this->runtime = (integer) $time;
+        $this->runtime = (int) $time;
     }
 
     public function getMemoryUsage(): ?int
@@ -481,7 +482,7 @@ class Job implements \Stringable
 
     public function setMaxRuntime($time): void
     {
-        $this->maxRuntime = (integer) $time;
+        $this->maxRuntime = (int) $time;
     }
 
     public function getMaxRuntime(): ?int
@@ -501,7 +502,7 @@ class Job implements \Stringable
 
     public function setMaxRetries($tries): void
     {
-        $this->maxRetries = (integer) $tries;
+        $this->maxRetries = (int) $tries;
     }
 
     public function isRetryAllowed()
@@ -562,7 +563,7 @@ class Job implements \Stringable
         foreach ($this->retryJobs as $job) {
             /** @var Job $job */
 
-            if ( ! $job->isInFinalState()) {
+            if (! $job->isInFinalState()) {
                 return true;
             }
         }
@@ -649,7 +650,7 @@ class Job implements \Stringable
         if (self::STATE_NEW === $this->state) {
             return false;
         }
-        
+
         return !(self::STATE_PENDING === $this->state && ! $this->isStartable());
     }
 }

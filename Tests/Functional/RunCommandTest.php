@@ -57,7 +57,7 @@ class RunCommandTest extends BaseTestCase
     public function testQueueWithLimitedConcurrentJobs()
     {
         $outputFile = tempnam(sys_get_temp_dir(), 'job-output');
-        for ($i=0; $i<4; $i++) {
+        for ($i = 0; $i < 4; $i++) {
             $job = new Job('jms-job-queue:logging-cmd', array('Job'.$i, $outputFile, '--runtime=1'));
             $this->em->persist($job);
         }
@@ -69,7 +69,8 @@ class RunCommandTest extends BaseTestCase
         $output = file_get_contents($outputFile);
         unlink($outputFile);
 
-        $this->assertEquals(<<<OUTPUT
+        $this->assertEquals(
+            <<<OUTPUT
 Job0 started
 Job0 stopped
 Job1 started
@@ -91,7 +92,7 @@ OUTPUT
     public function testQueueWithMoreThanOneConcurrentJob()
     {
         $outputFile = tempnam(sys_get_temp_dir(), 'job-output');
-        for ($i=0; $i<3; $i++) {
+        for ($i = 0; $i < 3; $i++) {
             $job = new Job('jms-job-queue:logging-cmd', array('Job'.$i, $outputFile, '--runtime=4'), true, 'foo');
             $this->em->persist($job);
         }
@@ -100,7 +101,8 @@ OUTPUT
         $output = $this->runConsoleCommand(array('--max-runtime' => 15, '--worker-name' => 'test'));
         unlink($outputFile);
 
-        $this->assertStringStartsWith(<<<OUTPUT
+        $this->assertStringStartsWith(
+            <<<OUTPUT
 Started Job(id = 1, command = "jms-job-queue:logging-cmd").
 Started Job(id = 2, command = "jms-job-queue:logging-cmd").
 OUTPUT
@@ -108,7 +110,8 @@ OUTPUT
             $output
         );
 
-        $this->assertStringStartsNotWith(<<<OUTPUT
+        $this->assertStringStartsNotWith(
+            <<<OUTPUT
 Started Job(id = 1, command = "jms-job-queue:logging-cmd").
 Started Job(id = 2, command = "jms-job-queue:logging-cmd").
 Started Job(id = 3, command = "jms-job-queue:logging-cmd").
@@ -217,7 +220,8 @@ OUTPUT
 
         $output = $this->runConsoleCommand(array('--max-runtime' => 4, '--worker-name' => 'test'));
 
-        $this->assertEquals(<<<OUTPUT
+        $this->assertEquals(
+            <<<OUTPUT
 Started Job(id = 2, command = "jms-job-queue:successful-cmd").
 Job(id = 2, command = "jms-job-queue:successful-cmd") finished with exit code 0.
 Started Job(id = 1, command = "jms-job-queue:successful-cmd").
@@ -243,7 +247,8 @@ OUTPUT
 
         $output = $this->runConsoleCommand(array('--max-runtime' => 4, '--worker-name' => 'test'));
 
-        $this->assertEquals(<<<OUTPUT
+        $this->assertEquals(
+            <<<OUTPUT
 Started Job(id = 1, command = "jms-job-queue:successful-cmd").
 Job(id = 1, command = "jms-job-queue:successful-cmd") finished with exit code 0.
 Started Job(id = 2, command = "jms-job-queue:successful-cmd").

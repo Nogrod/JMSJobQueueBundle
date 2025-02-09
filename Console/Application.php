@@ -4,11 +4,10 @@ declare(strict_types=1);
 
 namespace JMS\JobQueueBundle\Console;
 
-declare(ticks = 10_000_000);
+declare(ticks=10_000_000);
 
 use Doctrine\DBAL\Statement;
 use Doctrine\DBAL\Types\Type;
-
 use JMS\JobQueueBundle\Entity\Job;
 use Symfony\Bundle\FrameworkBundle\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
@@ -25,7 +24,7 @@ use Symfony\Component\ErrorHandler\Exception\FlattenException;
 class Application extends BaseApplication
 {
     private $insertStatStmt;
-    
+
     private ?InputInterface $input = null;
 
     public function __construct(KernelInterface $kernel)
@@ -59,13 +58,13 @@ class Application extends BaseApplication
 
     public function onTick(): void
     {
-        if ( ! $this->input->hasOption('jms-job-id') || null === $jobId = $this->input->getOption('jms-job-id')) {
+        if (! $this->input->hasOption('jms-job-id') || null === $jobId = $this->input->getOption('jms-job-id')) {
             return;
         }
 
         $characteristics = ['memory' => memory_get_usage()];
 
-        if(!$this->insertStatStmt instanceof Statement){
+        if (!$this->insertStatStmt instanceof Statement) {
             $this->insertStatStmt = $this->getConnection()->prepare($this->insertStatStmt);
         }
 
@@ -81,7 +80,7 @@ class Application extends BaseApplication
 
     private function saveDebugInformation(\Exception $ex = null): void
     {
-        if ( ! $this->input->hasOption('jms-job-id') || null === $jobId = $this->input->getOption('jms-job-id')) {
+        if (! $this->input->hasOption('jms-job-id') || null === $jobId = $this->input->getOption('jms-job-id')) {
             return;
         }
 

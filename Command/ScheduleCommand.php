@@ -38,14 +38,14 @@ class ScheduleCommand extends Command
     {
         $maxRuntime = $input->getOption('max-runtime');
         if ($maxRuntime > 300) {
-            $maxRuntime += random_int(0, (integer)($input->getOption('max-runtime') * 0.05));
+            $maxRuntime += random_int(0, (int)($input->getOption('max-runtime') * 0.05));
         }
-        
+
         if ($maxRuntime <= 0) {
             throw new \RuntimeException('Max. runtime must be greater than zero.');
         }
 
-        $minJobInterval = (integer)$input->getOption('min-job-interval');
+        $minJobInterval = (int)$input->getOption('min-job-interval');
         if ($minJobInterval <= 0) {
             throw new \RuntimeException('Min. job interval must be greater than zero.');
         }
@@ -88,7 +88,7 @@ class ScheduleCommand extends Command
         foreach ($jobSchedulers as $name => $scheduler) {
             $lastRunAt = $jobsLastRunAt[$name];
 
-            if ( ! $scheduler->shouldSchedule($name, $lastRunAt)) {
+            if (! $scheduler->shouldSchedule($name, $lastRunAt)) {
                 continue;
             }
 
@@ -143,7 +143,7 @@ class ScheduleCommand extends Command
 
         foreach ($this->cronCommands as $command) {
             /** @var CronCommand $command */
-            if ( ! $command instanceof Command) {
+            if (! $command instanceof Command) {
                 throw new \RuntimeException('CronCommand should only be used on Symfony commands.');
             }
 
@@ -163,13 +163,13 @@ class ScheduleCommand extends Command
         }
 
         foreach (array_keys($jobSchedulers) as $name) {
-            if ( ! isset($jobsLastRunAt[$name])) {
+            if (! isset($jobsLastRunAt[$name])) {
                 $job = new CronJob($name);
                 $em->persist($job);
                 $jobsLastRunAt[$name] = $job->getLastRunAt();
             }
         }
-        
+
         $em->flush();
 
         return $jobsLastRunAt;

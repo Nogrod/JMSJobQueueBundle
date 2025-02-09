@@ -3,8 +3,8 @@
 namespace JMS\JobQueueBundle\Tests\Functional;
 
 // Set-up composer auto-loading if Client is insulated.
-call_user_func(function() {
-    if ( ! is_file($autoloadFile = __DIR__.'/../../vendor/autoload.php')) {
+call_user_func(function () {
+    if (! is_file($autoloadFile = __DIR__.'/../../vendor/autoload.php')) {
         throw new \LogicException('The autoload file "vendor/autoload.php" was not found. Did you run "composer install --dev"?');
     }
 
@@ -30,7 +30,7 @@ class AppKernel extends Kernel
             $config = __DIR__.'/config/'.$config;
         }
 
-        if ( ! is_file($config)) {
+        if (! is_file($config)) {
             throw new \RuntimeException(sprintf('The config file "%s" does not exist.', $config));
         }
 

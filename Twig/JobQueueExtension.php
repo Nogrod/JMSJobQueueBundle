@@ -40,10 +40,10 @@ class JobQueueExtension extends AbstractExtension
         foreach ($args as $arg) {
             $argLength = strlen((string) $arg);
 
-            if ( ! $first) {
+            if (! $first) {
                 $str .= ' ';
             }
-            
+
             $first = false;
 
             if (strlen($str) + $argLength > $maxLength) {

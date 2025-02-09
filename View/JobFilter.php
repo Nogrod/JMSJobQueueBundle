@@ -9,9 +9,9 @@ use Symfony\Component\HttpFoundation\Request;
 class JobFilter
 {
     public $page;
-    
+
     public $command;
-    
+
     public $state;
 
     public static function fromRequest(Request $request): self

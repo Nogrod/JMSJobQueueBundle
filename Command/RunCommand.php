@@ -17,6 +17,7 @@ declare(strict_types=1);
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace JMS\JobQueueBundle\Command;
 
 use Doctrine\Persistence\ObjectManager;
@@ -71,7 +72,7 @@ class RunCommand extends Command
     {
         $startTime = time();
 
-        $maxRuntime = (integer) $input->getOption('max-runtime');
+        $maxRuntime = (int) $input->getOption('max-runtime');
         if ($maxRuntime <= 0) {
             throw new InvalidArgumentException('The maximum runtime must be greater than zero.');
         }
@@ -80,12 +81,12 @@ class RunCommand extends Command
             $maxRuntime += random_int(-120, 120);
         }
 
-        $maxJobs = (integer) $input->getOption('max-concurrent-jobs');
+        $maxJobs = (int) $input->getOption('max-concurrent-jobs');
         if ($maxJobs <= 0) {
             throw new InvalidArgumentException('The maximum number of jobs per queue must be greater than zero.');
         }
 
-        $idleTime = (integer) $input->getOption('idle-time');
+        $idleTime = (int) $input->getOption('idle-time');
         if ($idleTime <= 0) {
             throw new InvalidArgumentException('Time to sleep when idling must be greater than zero.');
         }
@@ -171,7 +172,7 @@ class RunCommand extends Command
             $this->output->writeln('Entering shutdown sequence, waiting for running jobs to terminate...');
         }
 
-        while ( $this->runningJobs !== []) {
+        while ($this->runningJobs !== []) {
             sleep(5);
             $this->checkRunningJobs();
         }
@@ -183,7 +184,7 @@ class RunCommand extends Command
 
     private function setupSignalHandlers(): void
     {
-        pcntl_signal(SIGTERM, function(): void {
+        pcntl_signal(SIGTERM, function (): void {
             if ($this->verbose) {
                 $this->output->writeln('Received SIGTERM signal.');
             }
@@ -232,11 +233,11 @@ class RunCommand extends Command
     private function getMaxConcurrentJobs(string $queue, array $queueOptionsDefaults, array $queueOptions, int $maxConcurrentJobs): int
     {
         if (isset($queueOptions[$queue]['max_concurrent_jobs'])) {
-            return (integer) $queueOptions[$queue]['max_concurrent_jobs'];
+            return (int) $queueOptions[$queue]['max_concurrent_jobs'];
         }
 
         if (isset($queueOptionsDefaults['max_concurrent_jobs'])) {
-            return (integer) $queueOptionsDefaults['max_concurrent_jobs'];
+            return (int) $queueOptionsDefaults['max_concurrent_jobs'];
         }
 
         return $maxConcurrentJobs;
@@ -247,10 +248,10 @@ class RunCommand extends Command
         $runningJobsPerQueue = [];
         foreach ($this->runningJobs as $jobDetails) {
             $queue = $jobDetails['job']->getQueue();
-            if ( ! isset($runningJobsPerQueue[$queue])) {
+            if (! isset($runningJobsPerQueue[$queue])) {
                 $runningJobsPerQueue[$queue] = 0;
             }
-            
+
             $runningJobsPerQueue[$queue] += 1;
         }
 
@@ -266,24 +267,24 @@ class RunCommand extends Command
             $newErrorOutput = substr((string) $data['process']->getErrorOutput(), $data['error_output_pointer']);
             $data['error_output_pointer'] += strlen($newErrorOutput);
 
-            if ( $newOutput !== '' && $newOutput !== '0') {
+            if ($newOutput !== '' && $newOutput !== '0') {
                 $event = new NewOutputEvent($data['job'], $newOutput, NewOutputEvent::TYPE_STDOUT);
                 $this->dispatcher->dispatch($event, 'jms_job_queue.new_job_output');
                 $newOutput = $event->getNewOutput();
             }
 
-            if ( $newErrorOutput !== '' && $newErrorOutput !== '0') {
+            if ($newErrorOutput !== '' && $newErrorOutput !== '0') {
                 $event = new NewOutputEvent($data['job'], $newErrorOutput, NewOutputEvent::TYPE_STDERR);
                 $this->dispatcher->dispatch($event, 'jms_job_queue.new_job_output');
                 $newErrorOutput = $event->getNewOutput();
             }
 
             if ($this->verbose) {
-                if ( ! empty($newOutput)) {
+                if (! empty($newOutput)) {
                     $this->output->writeln('Job '.$data['job']->getId().': '.str_replace("\n", "\nJob ".$data['job']->getId().": ", (string) $newOutput));
                 }
 
-                if ( ! empty($newErrorOutput)) {
+                if (! empty($newErrorOutput)) {
                     $this->output->writeln('Job '.$data['job']->getId().': '.str_replace("\n", "\nJob ".$data['job']->getId().": ", (string) $newErrorOutput));
                 }
             }
@@ -363,7 +364,7 @@ class RunCommand extends Command
 
         $proc = new Process($args);
         $proc->start();
-        
+
         $this->output->writeln(sprintf('Started %s.', $job));
 
         $this->runningJobs[] = ['process' => $proc, 'job' => $job, 'start_time' => time(), 'output_pointer' => 0, 'error_output_pointer' => 0];
@@ -390,7 +391,7 @@ class RunCommand extends Command
             // If the original job has retry jobs, then one of them is still in
             // running state. We can skip the original job here as it will be
             // processed automatically once the retry job is processed.
-            if ( ! $job->isRetryJob() && count($job->getRetryJobs()) > 0) {
+            if (! $job->isRetryJob() && count($job->getRetryJobs()) > 0) {
                 continue;
             }
 

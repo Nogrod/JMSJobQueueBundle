@@ -11,7 +11,7 @@ class SignalTest extends TestCase
 {
     public function testControlledExit()
     {
-        if ( ! extension_loaded('pcntl')) {
+        if (! extension_loaded('pcntl')) {
             $this->markTestSkipped('PCNTL extension is not loaded.');
         }
 
@@ -23,8 +23,8 @@ class SignalTest extends TestCase
         $this->assertTrue($proc->isRunning(), 'Process exited prematurely: '.$proc->getOutput().$proc->getErrorOutput());
         $this->assertTrueWithin(
             3,
-            function() use ($proc) { return false !== strpos($proc->getOutput(), 'Signal Handlers have been installed'); },
-            function() use ($proc) {
+            function () use ($proc) { return false !== strpos($proc->getOutput(), 'Signal Handlers have been installed'); },
+            function () use ($proc) {
                 $this->fail('Signal handlers were not installed: '.$proc->getOutput().$proc->getErrorOutput());
             }
         );
@@ -33,16 +33,16 @@ class SignalTest extends TestCase
 
         $this->assertTrueWithin(
             3,
-            function() use ($proc) { return false !== strpos($proc->getOutput(), 'Received SIGTERM'); },
-            function() use ($proc) {
+            function () use ($proc) { return false !== strpos($proc->getOutput(), 'Received SIGTERM'); },
+            function () use ($proc) {
                 $this->fail('Signal was not received by process within 3 seconds: ' . $proc->getOutput() . $proc->getErrorOutput());
             }
         );
 
         $this->assertTrueWithin(
             3,
-            function() use ($proc) { return ! $proc->isRunning(); },
-            function() use ($proc) {
+            function () use ($proc) { return ! $proc->isRunning(); },
+            function () use ($proc) {
                 $this->fail('Process did not terminate within 3 seconds: '.$proc->getOutput().$proc->getErrorOutput());
             }
         );

@@ -26,7 +26,7 @@ class ConcurrencyTest extends BaseTestCase
 
         /** @var Job[] $jobs */
         $jobs = array();
-        for ($i=0; $i<5; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             $jobs[] = $job = new Job('jms-job-queue:logging-cmd', array('Job-'.$i, $filename, '--runtime=1'));
             $em->persist($job);
         }
@@ -37,7 +37,7 @@ class ConcurrencyTest extends BaseTestCase
         $logOutput = file_get_contents($filename);
         unlink($filename);
 
-        for ($i=0; $i<5; $i++) {
+        for ($i = 0; $i < 5; $i++) {
             $this->assertSame(2, substr_count($logOutput, 'Job-'.$i));
         }
 
@@ -53,7 +53,7 @@ class ConcurrencyTest extends BaseTestCase
         $this->assertEquals(array('one', 'two'), $workers);
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->databaseFile = tempnam(sys_get_temp_dir(), 'db');
         $this->configFile = tempnam(sys_get_temp_dir(), 'di-cfg');
@@ -61,7 +61,9 @@ class ConcurrencyTest extends BaseTestCase
         $this->configFile .= '.yml';
 
         $persistentDbConfig = __DIR__.'/config/persistent_db.yml';
-        file_put_contents($this->configFile, <<<CONFIG
+        file_put_contents(
+            $this->configFile,
+            <<<CONFIG
 imports:
     - { resource: "{$persistentDbConfig}" }
 
@@ -77,14 +79,14 @@ CONFIG
         $this->importDatabaseSchema();
     }
 
-    protected function tearDown()
+    protected function tearDown(): void
     {
         @unlink($this->databaseFile);
         @unlink($this->configFile);
 
         foreach ($this->processes as $process) {
-            if ( ! $process->isRunning()) {
-                throw new\ RuntimeException(sprintf('The process "%s" exited prematurely:'."\n\n%s\n\n%s", $process->getCommandLine(), $process->getOutput(), $process->getErrorOutput()));
+            if (! $process->isRunning()) {
+                throw new \RuntimeException(sprintf('The process "%s" exited prematurely:'."\n\n%s\n\n%s", $process->getCommandLine(), $process->getOutput(), $process->getErrorOutput()));
             }
 
             $process->stop(5);
@@ -122,7 +124,7 @@ CONFIG
         $proc->start();
 
         sleep(2);
-        if ( ! $proc->isRunning()) {
+        if (! $proc->isRunning()) {
             throw new \RuntimeException(sprintf(
                 "Process '%s' failed to start:\n\n%s\n\n%s",
                 $proc->getCommandLine(),

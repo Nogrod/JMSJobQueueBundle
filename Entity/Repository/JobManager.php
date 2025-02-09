@@ -17,6 +17,7 @@ declare(strict_types=1);
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace JMS\JobQueueBundle\Entity\Repository;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -155,7 +156,7 @@ class JobManager
         $params->add(new Parameter('relClass', $relClass));
         $params->add(new Parameter('relId', $relId));
 
-        if ( $states !== []) {
+        if ($states !== []) {
             $sql .= " AND j.state IN (:states)";
             $params->add(new Parameter('states', $states, ArrayParameterType::STRING));
         }
@@ -167,7 +168,7 @@ class JobManager
 
     private function getRelatedEntityIdentifier($entity): array
     {
-        if ( ! is_object($entity)) {
+        if (! is_object($entity)) {
             throw new \RuntimeException('$entity must be an object.');
         }
 
@@ -180,7 +181,7 @@ class JobManager
                     ->getMetadataFor($relClass)->getIdentifierValues($entity);
         asort($relId);
 
-        if ( $relId === []) {
+        if ($relId === []) {
             throw new \InvalidArgumentException(sprintf('The identifier for entity of class "%s" was empty.', $relClass));
         }
 
@@ -239,7 +240,7 @@ class JobManager
             foreach ($visited as $job) {
                 // If the job is an original job which is now being retried, let's
                 // not remove it just yet.
-                if ( ! $job->isClosedNonSuccessful() || $job->isRetryJob()) {
+                if (! $job->isClosedNonSuccessful() || $job->isRetryJob()) {
                     continue;
                 }
 
@@ -257,7 +258,7 @@ class JobManager
         if (in_array($job, $visited, true)) {
             return;
         }
-        
+
         $visited[] = $job;
 
         if ($job->isInFinalState()) {
@@ -323,7 +324,7 @@ class JobManager
                 // The original job has failed, and no retries are allowed.
                 foreach ($this->findIncomingDependencies($job) as $dep) {
                     // This is a safe-guard to avoid blowing up if there is a database inconsistency.
-                    if ( ! $dep->isPending() && ! $dep->isNew()) {
+                    if (! $dep->isPending() && ! $dep->isNew()) {
                         continue;
                     }
 
@@ -337,7 +338,7 @@ class JobManager
                     $job->getOriginalJob()->setState($finalState);
                     $this->getJobManager()->persist($job->getOriginalJob());
                 }
-                
+
                 $job->setState($finalState);
                 $this->getJobManager()->persist($job);
 
@@ -404,7 +405,7 @@ class JobManager
 
         $newQueueArray = [];
 
-        foreach($queues as $queue) {
+        foreach ($queues as $queue) {
             $newQueue = $queue['queue'];
             $newQueueArray[] = $newQueue;
         }
@@ -423,7 +424,7 @@ class JobManager
 
         return count($result);
     }
-    
+
     private function getJobManager(): ObjectManager
     {
         return $this->registry->getManagerForClass(Job::class);

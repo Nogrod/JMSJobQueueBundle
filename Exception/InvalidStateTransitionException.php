@@ -17,6 +17,7 @@ declare(strict_types=1);
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 namespace JMS\JobQueueBundle\Exception;
 
 use JMS\JobQueueBundle\Entity\Job;
@@ -24,9 +25,9 @@ use JMS\JobQueueBundle\Entity\Job;
 class InvalidStateTransitionException extends \InvalidArgumentException
 {
     private readonly Job $job;
-    
+
     private $newState;
-    
+
     private readonly array $allowedStates;
 
     public function __construct(Job $job, $newState, array $allowedStates = [])

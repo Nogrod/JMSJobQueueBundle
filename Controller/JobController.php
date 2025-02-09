@@ -41,7 +41,7 @@ class JobController extends AbstractController
             $qb->setParameter($i, $job->getId());
         }
 
-        if ( ! empty($jobFilter->command)) {
+        if (! empty($jobFilter->command)) {
             $qb->andWhere($qb->expr()->orX(
                 $qb->expr()->like('j.command', ':commandQuery'),
                 $qb->expr()->like('j.args', ':commandQuery')
@@ -49,7 +49,7 @@ class JobController extends AbstractController
                 ->setParameter('commandQuery', '%'.$jobFilter->command.'%');
         }
 
-        if ( ! empty($jobFilter->state)) {
+        if (! empty($jobFilter->state)) {
             $qb->andWhere($qb->expr()->eq('j.state', ':jobState'))
                 ->setParameter('jobState', $jobFilter->state);
         }
@@ -73,7 +73,7 @@ class JobController extends AbstractController
             $class = ClassUtils::getClass($entity);
             $relatedEntities[] = ['class' => $class, 'id' => json_encode($this->managerRegistry->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)), 'raw' => $entity];
         }
-        
+
         $statisticData = [];
         $statisticOptions = [];
         if ($this->getParameter('jms_job_queue.statistics')) {
@@ -89,11 +89,11 @@ class JobController extends AbstractController
             if ($dataPerCharacteristic !== []) {
                 $statisticData = [array_merge(['Time'], $chars = array_keys($dataPerCharacteristic))];
                 $startTime = strtotime((string) $dataPerCharacteristic[$chars[0]][0][0]);
-                $endTime = strtotime((string) $dataPerCharacteristic[$chars[0]][count($dataPerCharacteristic[$chars[0]])-1][0]);
-                $scaleFactor = $endTime - $startTime > 300 ? 1/60 : 1;
+                $endTime = strtotime((string) $dataPerCharacteristic[$chars[0]][count($dataPerCharacteristic[$chars[0]]) - 1][0]);
+                $scaleFactor = $endTime - $startTime > 300 ? 1 / 60 : 1;
 
                 // This assumes that we have the same number of rows for each characteristic.
-                for ($i=0,$c=count(reset($dataPerCharacteristic)); $i<$c; ++$i) {
+                for ($i = 0,$c = count(reset($dataPerCharacteristic)); $i < $c; ++$i) {
                     $row = [(strtotime((string) $dataPerCharacteristic[$chars[0]][$i][0]) - $startTime) * $scaleFactor];
                     foreach ($chars as $name) {
                         $value = (float) $dataPerCharacteristic[$name][$i][1];

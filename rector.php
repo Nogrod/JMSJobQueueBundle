@@ -57,4 +57,4 @@ return RectorConfig::configure()
                    DoctrineSetList::DOCTRINE_ORM_300,
                    DoctrineSetList::DOCTRINE_CODE_QUALITY,
                ])
-    ;
+;

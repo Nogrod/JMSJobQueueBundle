@@ -35,7 +35,7 @@ class ManyToAnyListener
     public function postLoad(PostLoadEventArgs $event): void
     {
         $entity = $event->getObject();
-        if ( ! $entity instanceof Job) {
+        if (! $entity instanceof Job) {
             return;
         }
 
@@ -45,7 +45,7 @@ class ManyToAnyListener
     public function preRemove(PreRemoveEventArgs $event): void
     {
         $entity = $event->getObject();
-        if ( ! $entity instanceof Job) {
+        if (! $entity instanceof Job) {
             return;
         }
 
@@ -56,7 +56,7 @@ class ManyToAnyListener
     public function postPersist(PostPersistEventArgs $event): void
     {
         $entity = $event->getObject();
-        if ( ! $entity instanceof Job) {
+        if (! $entity instanceof Job) {
             return;
         }
 
@@ -66,7 +66,7 @@ class ManyToAnyListener
             $relId = $this->registry->getManagerForClass($relClass)->getMetadataFactory()->getMetadataFor($relClass)->getIdentifierValues($relatedEntity);
             asort($relId);
 
-            if ( $relId === []) {
+            if ($relId === []) {
                 throw new \RuntimeException('The identifier for the related entity "'.$relClass.'" was empty.');
             }
 
