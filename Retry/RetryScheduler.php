@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Retry;
 
 use JMS\JobQueueBundle\Entity\Job;

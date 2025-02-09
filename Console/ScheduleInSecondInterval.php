@@ -26,8 +26,5 @@ trait ScheduleInSecondInterval
         return $job;
     }
 
-    /**
-     * @return integer
-     */
     abstract protected function getScheduleInterval(): int;
 }

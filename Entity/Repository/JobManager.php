@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * Copyright 2012 Johannes M. Schmitt <schmittjoh@gmail.com>
  *
@@ -15,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 namespace JMS\JobQueueBundle\Entity\Repository;
 
 use Doctrine\Common\Collections\ArrayCollection;
@@ -52,7 +53,7 @@ class JobManager
 
     public function getJob(string $command, array $args = []): Job
     {
-        if (null !== $job = $this->findJob($command, $args)) {
+        if (($job = $this->findJob($command, $args)) instanceof Job) {
             return $job;
         }
 
@@ -61,7 +62,7 @@ class JobManager
 
     public function getOrCreateIfNotExists(string $command, array $args = []): Job
     {
-        if (null !== $job = $this->findJob($command, $args)) {
+        if (($job = $this->findJob($command, $args)) instanceof Job) {
             return $job;
         }
 
@@ -91,7 +92,7 @@ class JobManager
 
     public function findStartableJob(string $workerName, array &$excludedIds = [], array $excludedQueues = [], array $restrictedQueues = []): ?Job
     {
-        while (null !== $job = $this->findPendingJob($excludedIds, $excludedQueues, $restrictedQueues)) {
+        while (($job = $this->findPendingJob($excludedIds, $excludedQueues, $restrictedQueues)) instanceof Job) {
             if ($job->isStartable() && $this->acquireLock($workerName, $job)) {
                 return $job;
             }
@@ -164,7 +165,7 @@ class JobManager
                    ->getOneOrNullResult();
     }
 
-    private function getRelatedEntityIdentifier($entity)
+    private function getRelatedEntityIdentifier($entity): array
     {
         if ( ! is_object($entity)) {
             throw new \RuntimeException('$entity must be an object.');
@@ -179,7 +180,7 @@ class JobManager
                     ->getMetadataFor($relClass)->getIdentifierValues($entity);
         asort($relId);
 
-        if ( ! $relId) {
+        if ( $relId === []) {
             throw new \InvalidArgumentException(sprintf('The identifier for entity of class "%s" was empty.', $relClass));
         }
 
@@ -224,7 +225,7 @@ class JobManager
         return $qb->getQuery()->setMaxResults(1)->getOneOrNullResult();
     }
 
-    public function closeJob(Job $job, $finalState)
+    public function closeJob(Job $job, $finalState): void
     {
         $objectManager = $this->getJobManager();
         $objectManager->getConnection()->beginTransaction();
@@ -244,18 +245,19 @@ class JobManager
 
                 $objectManager->detach($job);
             }
-        } catch (\Exception $ex) {
+        } catch (\Exception $exception) {
             $objectManager->getConnection()->rollback();
 
-            throw $ex;
+            throw $exception;
         }
     }
 
-    private function closeJobInternal(Job $job, $finalState, array &$visited = [])
+    private function closeJobInternal(Job $job, $finalState, array &$visited = []): void
     {
         if (in_array($job, $visited, true)) {
             return;
         }
+        
         $visited[] = $job;
 
         if ($job->isInFinalState()) {
@@ -335,6 +337,7 @@ class JobManager
                     $job->getOriginalJob()->setState($finalState);
                     $this->getJobManager()->persist($job->getOriginalJob());
                 }
+                
                 $job->setState($finalState);
                 $this->getJobManager()->persist($job);
 
@@ -390,7 +393,10 @@ class JobManager
                     ->getResult();
     }
 
-    public function getAvailableQueueList()
+    /**
+     * @return mixed[]
+     */
+    public function getAvailableQueueList(): array
     {
         $queues =  $this->getJobManager()->createQuery("SELECT DISTINCT j.queue FROM ".Job::class." j WHERE j.state IN (:availableStates)  GROUP BY j.queue")
             ->setParameter('availableStates', [Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING])
@@ -407,7 +413,7 @@ class JobManager
     }
 
 
-    public function getAvailableJobsForQueueCount($jobQueue)
+    public function getAvailableJobsForQueueCount($jobQueue): int
     {
         $result = $this->getJobManager()->createQuery("SELECT j.queue FROM ".Job::class." j WHERE j.state IN (:availableStates) AND j.queue = :queue")
             ->setParameter('availableStates', [Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING])

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Entity\Listener;
 
 use Doctrine\Common\Util\ClassUtils;
@@ -22,7 +24,7 @@ use JMS\JobQueueBundle\Entity\Job;
  */
 class ManyToAnyListener
 {
-    private $ref;
+    private readonly \ReflectionProperty $ref;
 
     public function __construct(private readonly ManagerRegistry $registry)
     {
@@ -30,7 +32,7 @@ class ManyToAnyListener
         $this->ref->setAccessible(true);
     }
 
-    public function postLoad(PostLoadEventArgs $event)
+    public function postLoad(PostLoadEventArgs $event): void
     {
         $entity = $event->getObject();
         if ( ! $entity instanceof Job) {
@@ -40,7 +42,7 @@ class ManyToAnyListener
         $this->ref->setValue($entity, new PersistentRelatedEntitiesCollection($this->registry, $entity));
     }
 
-    public function preRemove(PreRemoveEventArgs $event)
+    public function preRemove(PreRemoveEventArgs $event): void
     {
         $entity = $event->getObject();
         if ( ! $entity instanceof Job) {
@@ -51,7 +53,7 @@ class ManyToAnyListener
         $con->executeStatement("DELETE FROM jms_job_related_entities WHERE job_id = :id", ['id' => $entity->getId()]);
     }
 
-    public function postPersist(PostPersistEventArgs $event)
+    public function postPersist(PostPersistEventArgs $event): void
     {
         $entity = $event->getObject();
         if ( ! $entity instanceof Job) {
@@ -64,7 +66,7 @@ class ManyToAnyListener
             $relId = $this->registry->getManagerForClass($relClass)->getMetadataFactory()->getMetadataFor($relClass)->getIdentifierValues($relatedEntity);
             asort($relId);
 
-            if ( ! $relId) {
+            if ( $relId === []) {
                 throw new \RuntimeException('The identifier for the related entity "'.$relClass.'" was empty.');
             }
 
@@ -72,7 +74,7 @@ class ManyToAnyListener
         }
     }
 
-    public function postGenerateSchema(GenerateSchemaEventArgs $event)
+    public function postGenerateSchema(GenerateSchemaEventArgs $event): void
     {
         $schema = $event->getSchema();
 

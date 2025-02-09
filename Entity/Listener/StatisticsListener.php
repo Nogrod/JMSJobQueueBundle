@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Entity\Listener;
 
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
@@ -7,7 +9,7 @@ use JMS\JobQueueBundle\Entity\Job;
 
 class StatisticsListener
 {
-    public function postGenerateSchema(GenerateSchemaEventArgs $event)
+    public function postGenerateSchema(GenerateSchemaEventArgs $event): void
     {
         $schema = $event->getSchema();
 

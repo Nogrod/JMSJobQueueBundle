@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * Copyright 2012 Johannes M. Schmitt <schmittjoh@gmail.com>
  *
@@ -15,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 namespace JMS\JobQueueBundle\Event;
 
 use JMS\JobQueueBundle\Entity\Job;
@@ -33,7 +34,7 @@ class StateChangeEvent extends JobEvent
         return $this->newState;
     }
 
-    public function setNewState($state)
+    public function setNewState($state): void
     {
         $this->newState = $state;
     }

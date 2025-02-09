@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Twig;
 
 use Twig\Extension\AbstractExtension;
@@ -29,9 +31,7 @@ class JobQueueExtension extends AbstractExtension
     }
 
     /**
-     * @param array $args
      * @param $maxLength
-     * @return string
      */
     public function formatArgs(array $args, $maxLength = 60): string
     {
@@ -43,6 +43,7 @@ class JobQueueExtension extends AbstractExtension
             if ( ! $first) {
                 $str .= ' ';
             }
+            
             $first = false;
 
             if (strlen($str) + $argLength > $maxLength) {
@@ -58,7 +59,6 @@ class JobQueueExtension extends AbstractExtension
 
     /**
      * @param $entity
-     * @return bool
      */
     public function isLinkable($entity): bool
     {

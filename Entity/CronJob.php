@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Entity;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity]
@@ -9,13 +12,13 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Table(name: 'jms_cron_jobs')]
 class CronJob
 {
-    #[ORM\Id, ORM\Column(type: 'integer', options: ['unsigned' => true]), ORM\GeneratedValue(strategy: 'AUTO')]
-    private $id;
+    #[ORM\Id, ORM\Column(type: Types::INTEGER, options: ['unsigned' => true]), ORM\GeneratedValue(strategy: 'AUTO')]
+    private ?int $id = null;
 
-    #[ORM\Column(name: 'lastRunAt', type: 'datetime')]
+    #[ORM\Column(name: 'lastRunAt', type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $lastRunAt;
 
-    #[ORM\Column(type: 'string', length: 200, unique: true)]
+    #[ORM\Column(type: Types::STRING, length: 200, unique: true)]
     private string $command;
 
     public function __construct(string $command)

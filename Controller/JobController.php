@@ -1,17 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Controller;
 
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\Persistence\ManagerRegistry;
 use JMS\JobQueueBundle\Entity\Job;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
 use JMS\JobQueueBundle\View\JobFilter;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\HttpException;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
 class JobController extends AbstractController
 {
@@ -22,7 +26,7 @@ class JobController extends AbstractController
     }
 
     #[Route(path: '/', name: 'jms_jobs_overview')]
-    public function overview(Request $request): \Symfony\Component\HttpFoundation\Response
+    public function overview(Request $request): Response
     {
         $jobFilter = JobFilter::fromRequest($request);
 
@@ -62,15 +66,15 @@ class JobController extends AbstractController
     }
 
     #[Route(path: '/{id}', name: 'jms_jobs_details')]
-    public function details(Job $job): \Symfony\Component\HttpFoundation\Response
+    public function details(Job $job): Response
     {
         $relatedEntities = [];
         foreach ($job->getRelatedEntities() as $entity) {
             $class = ClassUtils::getClass($entity);
             $relatedEntities[] = ['class' => $class, 'id' => json_encode($this->managerRegistry->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)), 'raw' => $entity];
         }
-
-        $statisticData = $statisticOptions = [];
+        $statisticData = [];
+        $statisticOptions = [];
         if ($this->getParameter('jms_job_queue.statistics')) {
             $dataPerCharacteristic = [];
             foreach ($this->get('doctrine')->getManagerForClass(Job::class)->getConnection()->query("SELECT * FROM jms_job_statistics WHERE job_id = ".$job->getId()) as $row) {
@@ -88,7 +92,7 @@ class JobController extends AbstractController
                 $scaleFactor = $endTime - $startTime > 300 ? 1/60 : 1;
 
                 // This assumes that we have the same number of rows for each characteristic.
-                for ($i=0,$c=count(reset($dataPerCharacteristic)); $i<$c; $i++) {
+                for ($i=0,$c=count(reset($dataPerCharacteristic)); $i<$c; ++$i) {
                     $row = [(strtotime((string) $dataPerCharacteristic[$chars[0]][$i][0]) - $startTime) * $scaleFactor];
                     foreach ($chars as $name) {
                         $value = (float) $dataPerCharacteristic[$name][$i][1];
@@ -109,7 +113,7 @@ class JobController extends AbstractController
     }
 
     #[Route(path: '/{id}/retry', name: 'jms_jobs_retry_job')]
-    public function retryJob(Job $job)
+    public function retryJob(Job $job): RedirectResponse
     {
         $state = $job->getState();
 
@@ -118,7 +122,7 @@ class JobController extends AbstractController
             Job::STATE_TERMINATED !== $state &&
             Job::STATE_INCOMPLETE !== $state
         ) {
-            throw new HttpException(400, 'Given job can\'t be retried');
+            throw new HttpException(400, "Given job can't be retried");
         }
 
         $retryJob = clone $job;
@@ -128,7 +132,7 @@ class JobController extends AbstractController
 
         $url = $this->generateUrl('jms_jobs_details', ['id' => $retryJob->getId()]);
 
-        return new RedirectResponse($url, \Symfony\Component\HttpFoundation\Response::HTTP_CREATED);
+        return new RedirectResponse($url, Response::HTTP_CREATED);
     }
 
     private function getEm(): EntityManagerInterface

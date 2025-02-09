@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Command;
 
 use Doctrine\Persistence\ManagerRegistry;
@@ -38,6 +40,7 @@ class ScheduleCommand extends Command
         if ($maxRuntime > 300) {
             $maxRuntime += random_int(0, (integer)($input->getOption('max-runtime') * 0.05));
         }
+        
         if ($maxRuntime <= 0) {
             throw new \RuntimeException('Max. runtime must be greater than zero.');
         }
@@ -48,7 +51,7 @@ class ScheduleCommand extends Command
         }
 
         $jobSchedulers = $this->populateJobSchedulers();
-        if (empty($jobSchedulers)) {
+        if ($jobSchedulers === []) {
             $output->writeln('No job schedulers found, exiting...');
 
             return 0;
@@ -102,7 +105,7 @@ class ScheduleCommand extends Command
         }
     }
 
-    private function acquireLock($commandName, \DateTime $lastRunAt): array
+    private function acquireLock(string $commandName, \DateTime $lastRunAt): array
     {
         /** @var ObjectManager $em */
         $em = $this->registry->getManagerForClass(CronJob::class);
@@ -166,6 +169,7 @@ class ScheduleCommand extends Command
                 $jobsLastRunAt[$name] = $job->getLastRunAt();
             }
         }
+        
         $em->flush();
 
         return $jobsLastRunAt;

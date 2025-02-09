@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * Copyright 2012 Johannes M. Schmitt <schmittjoh@gmail.com>
  *
@@ -15,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 namespace JMS\JobQueueBundle\Command;
 
 use Doctrine\Persistence\ObjectManager;
@@ -44,14 +45,11 @@ class RunCommand extends Command
     /** @var boolean */
     private $verbose;
 
-    /** @var OutputInterface */
-    private $output;
+    private ?OutputInterface $output = null;
 
-    /** @var array */
-    private $runningJobs = [];
+    private array $runningJobs = [];
 
-    /** @var bool */
-    private $shouldShutdown = false;
+    private bool $shouldShutdown = false;
 
     public function __construct(private readonly ManagerRegistry $registry, private readonly JobManager $jobManager, private readonly EventDispatcherInterface $dispatcher, private readonly array $queueOptionsDefault, private readonly array $queueOptions)
     {
@@ -133,18 +131,10 @@ class RunCommand extends Command
     }
 
     /**
-     * @param string $workerName
      * @param $startTime
-     * @param int $maxRuntime
-     * @param int $idleTime
-     * @param int $maxJobs
-     * @param array $restrictedQueues
-     * @param array $queueOptionsDefaults
-     * @param array $queueOptions
-     * @return void
      * @throws RandomException
      */
-    private function runJobs(string $workerName, $startTime, int $maxRuntime, int $idleTime, int $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions): void
+    private function runJobs(string $workerName, int $startTime, int $maxRuntime, int $idleTime, int $maxJobs, array $restrictedQueues, array $queueOptionsDefaults, array $queueOptions): void
     {
         $hasPcntl = extension_loaded('pcntl');
 
@@ -174,7 +164,7 @@ class RunCommand extends Command
             $this->startJobs($workerName, $idleTime, $maxJobs, $restrictedQueues, $queueOptionsDefaults, $queueOptions);
 
             $waitTimeInMs = random_int(500, 1000);
-            usleep($waitTimeInMs * 1E3);
+            usleep($waitTimeInMs * 1000);
         }
 
         if ($this->verbose) {
@@ -193,7 +183,7 @@ class RunCommand extends Command
 
     private function setupSignalHandlers(): void
     {
-        pcntl_signal(SIGTERM, function() {
+        pcntl_signal(SIGTERM, function(): void {
             if ($this->verbose) {
                 $this->output->writeln('Received SIGTERM signal.');
             }
@@ -213,7 +203,7 @@ class RunCommand extends Command
                 $restrictedQueues
             );
 
-            if (null === $pendingJob) {
+            if (!$pendingJob instanceof \JMS\JobQueueBundle\Entity\Job) {
                 sleep($idleTime);
 
                 return;
@@ -237,12 +227,9 @@ class RunCommand extends Command
 
     /**
      * @param $queue
-     * @param array $queueOptionsDefaults
-     * @param array $queueOptions
      * @param $maxConcurrentJobs
-     * @return int
      */
-    private function getMaxConcurrentJobs($queue, array $queueOptionsDefaults, array $queueOptions, $maxConcurrentJobs): int
+    private function getMaxConcurrentJobs(string $queue, array $queueOptionsDefaults, array $queueOptions, int $maxConcurrentJobs): int
     {
         if (isset($queueOptions[$queue]['max_concurrent_jobs'])) {
             return (integer) $queueOptions[$queue]['max_concurrent_jobs'];
@@ -263,6 +250,7 @@ class RunCommand extends Command
             if ( ! isset($runningJobsPerQueue[$queue])) {
                 $runningJobsPerQueue[$queue] = 0;
             }
+            
             $runningJobsPerQueue[$queue] += 1;
         }
 
@@ -375,6 +363,7 @@ class RunCommand extends Command
 
         $proc = new Process($args);
         $proc->start();
+        
         $this->output->writeln(sprintf('Started %s.', $job));
 
         $this->runningJobs[] = ['process' => $proc, 'job' => $job, 'start_time' => time(), 'output_pointer' => 0, 'error_output_pointer' => 0];

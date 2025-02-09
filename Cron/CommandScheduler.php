@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Cron;
 
 use JMS\JobQueueBundle\Console\CronCommand;

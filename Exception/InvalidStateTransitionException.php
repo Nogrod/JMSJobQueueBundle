@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * Copyright 2012 Johannes M. Schmitt <schmittjoh@gmail.com>
  *
@@ -15,16 +17,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 namespace JMS\JobQueueBundle\Exception;
 
 use JMS\JobQueueBundle\Entity\Job;
 
 class InvalidStateTransitionException extends \InvalidArgumentException
 {
-    private $job;
+    private readonly Job $job;
+    
     private $newState;
-    private $allowedStates;
+    
+    private readonly array $allowedStates;
 
     public function __construct(Job $job, $newState, array $allowedStates = [])
     {
@@ -37,7 +40,7 @@ class InvalidStateTransitionException extends \InvalidArgumentException
         $this->allowedStates = $allowedStates;
     }
 
-    public function getJob()
+    public function getJob(): Job
     {
         return $this->job;
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Entity\Listener;
 
 use ArrayIterator;
@@ -21,7 +23,7 @@ use JMS\JobQueueBundle\Entity\Job;
  */
 class PersistentRelatedEntitiesCollection implements Collection, Selectable, \Stringable
 {
-    private $entities;
+    private ?array $entities = null;
 
     public function __construct(private readonly ManagerRegistry $registry, private readonly Job $job)
     {
@@ -104,7 +106,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
     /**
      * Removes an element with a specific key/index from the collection.
      *
-     * @param integer|string $key
      * @return object|null The removed element or NULL, if no element exists for the given key.
      */
     public function remove(int|string $key)
@@ -127,8 +128,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * ArrayAccess implementation of offsetExists()
      *
      * @see containsKey()
-     *
-     * @return bool
      */
     public function offsetExists(mixed $offset): bool
     {
@@ -141,8 +140,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * ArrayAccess implementation of offsetGet()
      *
      * @see get()
-     *
-     * @return mixed
      */
     public function offsetGet(mixed $offset): mixed
     {
@@ -156,8 +153,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      *
      * @see add()
      * @see set()
-     *
-     * @return bool
      */
     public function offsetSet(mixed $offset, mixed $value): void
     {
@@ -168,8 +163,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * ArrayAccess implementation of offsetUnset()
      *
      * @see remove()
-     *
-     * @return mixed
      */
     public function offsetUnset(mixed $offset): void
     {
@@ -195,7 +188,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * is strict, that means not only the value but also the type must match.
      * For objects this means reference equality.
      *
-     * @param mixed $element
      * @return boolean TRUE if the given element is contained in the collection,
      *          FALSE otherwise.
      */
@@ -220,6 +212,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
                 return true;
             }
         }
+        
         return false;
     }
 
@@ -296,7 +289,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * When the collection is a List this is like add(position,value).
      *
      * @param mixed $key
-     * @param mixed $value
      */
     public function set(string|int $key, mixed $value)
     {
@@ -306,7 +298,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
     /**
      * Adds an element to the collection.
      *
-     * @param mixed $value
      * @return boolean Always TRUE.
      */
     public function add(mixed $value)
@@ -344,7 +335,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * Applies the given function to each element in the collection and returns
      * a new collection with the elements returned by the function.
      *
-     * @param Closure $func
      * @return Collection
      */
     public function map(Closure $func)
@@ -400,8 +390,8 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
     public function partition(Closure $p)
     {
         $this->initialize();
-
-        $coll1 = $coll2 = [];
+        $coll1 = [];
+        $coll2 = [];
         foreach ($this->entities as $key => $element) {
             if ($p($key, $element)) {
                 $coll1[$key] = $element;
@@ -409,13 +399,12 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
                 $coll2[$key] = $element;
             }
         }
+        
         return [new ArrayCollection($coll1), new ArrayCollection($coll2)];
     }
 
     /**
      * Returns a string representation of this object.
-     *
-     * @return string
      */
     public function __toString(): string
     {
@@ -437,7 +426,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * Keys have to be preserved by this method. Calling this method will only return the
      * selected slice and NOT change the elements contained in the collection slice is called on.
      *
-     * @param int $offset
      * @param int $length
      * @return array
      */
@@ -452,7 +440,6 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
      * Select all elements from a selectable that match the criteria and
      * return a new collection containing these elements.
      *
-     * @param  Criteria $criteria
      * @return Collection
      */
     public function matching(Criteria $criteria)
@@ -487,7 +474,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
         return new ArrayCollection($filtered);
     }
 
-    private function initialize()
+    private function initialize(): void
     {
         if (null !== $this->entities) {
             return;
@@ -542,6 +529,7 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
                 return $value;
             }
         }
+        
         return null;
     }
 

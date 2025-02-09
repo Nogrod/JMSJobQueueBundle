@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Console;
 
 declare(ticks = 10_000_000);
@@ -23,7 +25,8 @@ use Symfony\Component\ErrorHandler\Exception\FlattenException;
 class Application extends BaseApplication
 {
     private $insertStatStmt;
-    private $input;
+    
+    private ?InputInterface $input = null;
 
     public function __construct(KernelInterface $kernel)
     {
@@ -47,14 +50,14 @@ class Application extends BaseApplication
             $this->saveDebugInformation();
 
             return $rs;
-        } catch (\Exception $ex) {
-            $this->saveDebugInformation($ex);
+        } catch (\Exception $exception) {
+            $this->saveDebugInformation($exception);
 
-            throw $ex;
+            throw $exception;
         }
     }
 
-    public function onTick()
+    public function onTick(): void
     {
         if ( ! $this->input->hasOption('jms-job-id') || null === $jobId = $this->input->getOption('jms-job-id')) {
             return;
@@ -76,7 +79,7 @@ class Application extends BaseApplication
         }
     }
 
-    private function saveDebugInformation(\Exception $ex = null)
+    private function saveDebugInformation(\Exception $ex = null): void
     {
         if ( ! $this->input->hasOption('jms-job-id') || null === $jobId = $this->input->getOption('jms-job-id')) {
             return;

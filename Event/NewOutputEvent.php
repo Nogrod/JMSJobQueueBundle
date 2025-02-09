@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * Copyright 2012 Johannes M. Schmitt <schmittjoh@gmail.com>
  *
@@ -15,7 +17,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 namespace JMS\JobQueueBundle\Event;
 
 use JMS\JobQueueBundle\Entity\Job;
@@ -24,6 +25,7 @@ use JMS\JobQueueBundle\Event\JobEvent;
 class NewOutputEvent extends JobEvent
 {
     final public const TYPE_STDOUT = 1;
+    
     final public const TYPE_STDERR = 2;
 
     public function __construct(Job $job, private $newOutput, private $type = self::TYPE_STDOUT)
@@ -36,7 +38,7 @@ class NewOutputEvent extends JobEvent
         return $this->newOutput;
     }
 
-    public function setNewOutput($output)
+    public function setNewOutput($output): void
     {
         $this->newOutput = $output;
     }
