@@ -362,7 +362,7 @@ class Job implements \Stringable
         return $this->args;
     }
 
-    public function getRelatedEntities()
+    public function getRelatedEntities(): Collection
     {
         return $this->relatedEntities;
     }
