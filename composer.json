@@ -20,7 +20,6 @@
     },
     "require-dev": {
         "doctrine/doctrine-fixtures-bundle": "*",
-        "sensio/framework-extra-bundle": "*",
         "symfony/class-loader": "*",
         "symfony/yaml": "*",
         "symfony/browser-kit": "*",
@@ -31,7 +30,7 @@
         "symfony/twig-bundle": "*",
         "symfony/form": "*",
         "symfony/validator": "*",
-        "phpunit/phpunit": "^8.0",
+        "phpunit/phpunit": "^12.0",
         "symfony/intl": "*",
         "rector/rector": "^2.0",
         "php-cs-fixer/shim": "^3.68"

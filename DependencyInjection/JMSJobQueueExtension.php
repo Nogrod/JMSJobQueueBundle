@@ -43,13 +43,13 @@ class JMSJobQueueExtension extends Extension implements PrependExtensionInterfac
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
-        $loader = new Loader\XmlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
-        $loader->load('services.xml');
-        $loader->load('console.xml');
+        $loader = new Loader\PhpFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
+        $loader->load('services.php');
+        $loader->load('console.php');
 
         $container->setParameter('jms_job_queue.statistics', $config['statistics']);
         if ($config['statistics']) {
-            $loader->load('statistics.xml');
+            $loader->load('statistics.php');
         }
 
         $container->registerForAutoconfiguration(JobScheduler::class)
