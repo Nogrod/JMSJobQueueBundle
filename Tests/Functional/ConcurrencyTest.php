@@ -1,20 +1,23 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManager;
 use JMS\JobQueueBundle\Entity\Job;
 use Symfony\Component\Process\Process;
 
-class ConcurrencyTest extends BaseTestCase
+final class ConcurrencyTest extends BaseTestCase
 {
     /** @var Process[] */
-    private $processes = array();
+    private array $processes = [];
 
     private $configFile;
+
     private $databaseFile;
 
-    public function testHighConcurrency()
+    public function testHighConcurrency(): void
     {
         $this->startWorker('one');
         $this->startWorker('two');
@@ -25,11 +28,12 @@ class ConcurrencyTest extends BaseTestCase
         $em = self::$kernel->getContainer()->get('doctrine')->getManager();
 
         /** @var Job[] $jobs */
-        $jobs = array();
-        for ($i = 0; $i < 5; $i++) {
-            $jobs[] = $job = new Job('jms-job-queue:logging-cmd', array('Job-'.$i, $filename, '--runtime=1'));
+        $jobs = [];
+        for ($i = 0; $i < 5; ++$i) {
+            $jobs[] = $job = new Job('jms-job-queue:logging-cmd', ['Job-'.$i, $filename, '--runtime=1']);
             $em->persist($job);
         }
+
         $em->flush();
 
         $this->waitUntilJobsProcessed(20);
@@ -37,11 +41,11 @@ class ConcurrencyTest extends BaseTestCase
         $logOutput = file_get_contents($filename);
         unlink($filename);
 
-        for ($i = 0; $i < 5; $i++) {
+        for ($i = 0; $i < 5; ++$i) {
             $this->assertSame(2, substr_count($logOutput, 'Job-'.$i));
         }
 
-        $workers = array();
+        $workers = [];
         foreach ($jobs as $job) {
             $em->refresh($job);
             $workers[] = $job->getWorkerName();
@@ -50,7 +54,7 @@ class ConcurrencyTest extends BaseTestCase
         $workers = array_unique($workers);
         sort($workers);
 
-        $this->assertEquals(array('one', 'two'), $workers);
+        $this->assertEquals(['one', 'two'], $workers);
     }
 
     protected function setUp(): void
@@ -73,7 +77,7 @@ parameters:
 CONFIG
         );
 
-        self::$kernel = self::createKernel(array('config' => $this->configFile));
+        self::$kernel = self::createKernel(['config' => $this->configFile]);
         self::$kernel->boot();
 
         $this->importDatabaseSchema();
@@ -93,7 +97,7 @@ CONFIG
         }
     }
 
-    private function waitUntilJobsProcessed($maxRuntime)
+    private function waitUntilJobsProcessed(int $maxRuntime): void
     {
         $start = time();
         do {
@@ -103,24 +107,24 @@ CONFIG
             $em = self::$kernel->getContainer()->get('doctrine')->getManager();
 
             $jobCount = $em->createQuery("SELECT COUNT(j) FROM ".Job::class." j WHERE j.state IN (:nonFinalStates)")
-                ->setParameter('nonFinalStates', array(Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING))
+                ->setParameter('nonFinalStates', [Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING])
                 ->getSingleScalarResult();
         } while ($jobCount > 0 && time() - $start < $maxRuntime);
 
         if ($jobCount > 0) {
             $jobs = $em->createQuery("SELECT j FROM ".Job::class." j WHERE j.state IN (:nonFinalStates)")
-                ->setParameter('nonFinalStates', array(Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING))
+                ->setParameter('nonFinalStates', [Job::STATE_RUNNING, Job::STATE_NEW, Job::STATE_PENDING])
                 ->getResult();
 
             throw new \RuntimeException('Not all jobs were processed: '."\n\n".implode("\n\n", $jobs));
         }
     }
 
-    private function startWorker($name)
+    private function startWorker(string $name): void
     {
-        $proc = new Process('exec '.PHP_BINARY.' '.escapeshellarg(__DIR__.'/console').' jms-job-queue:run --worker-name='.$name, null, array(
+        $proc = new Process('exec '.PHP_BINARY.' '.escapeshellarg(__DIR__.'/console').' jms-job-queue:run --worker-name='.$name, null, [
             'SYMFONY_CONFIG' => $this->configFile,
-        ));
+        ]);
         $proc->start();
 
         sleep(2);

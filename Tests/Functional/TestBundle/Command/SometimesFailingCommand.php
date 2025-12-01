@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Tests\Functional\TestBundle\Command;
 
 use Symfony\Component\Console\Command\Command;
@@ -17,7 +19,7 @@ class SometimesFailingCommand extends Command
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $expired = time() - $input->getArgument('time');
 

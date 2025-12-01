@@ -16,32 +16,28 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand('jms-job-queue:clean-up', 'Cleans up jobs which exceed the maximum retention time.')]
-class CleanUpCommand extends Command
+class CleanUpCommand
 {
     public function __construct(private readonly ManagerRegistry $registry, private readonly JobManager $jobManager)
     {
-        parent::__construct();
     }
 
-    protected function configure(): void
-    {
-        $this
-            ->addOption('max-retention', null, InputOption::VALUE_REQUIRED, 'The maximum retention time (value must be parsable by DateTime).', '7 days')
-            ->addOption('max-retention-succeeded', null, InputOption::VALUE_REQUIRED, 'The maximum retention time for succeeded jobs (value must be parsable by DateTime).', '1 hour')
-            ->addOption('per-call', null, InputOption::VALUE_REQUIRED, 'The maximum number of jobs to clean-up per call.', 1000)
-            ->addOption('jms-job-id', null, InputOption::VALUE_OPTIONAL, 'The JMS Job Id.')
-        ;
-    }
-
-    protected function execute(InputInterface $input, OutputInterface $output): int
+    public function __invoke(
+        #[\Symfony\Component\Console\Attribute\Option(description: 'The maximum retention time (value must be parsable by DateTime).', name: 'max-retention', mode: InputOption::VALUE_REQUIRED)]
+        string $maxRetention = '7 days',
+        #[\Symfony\Component\Console\Attribute\Option(description: 'The maximum retention time for succeeded jobs (value must be parsable by DateTime).', name: 'max-retention-succeeded', mode: InputOption::VALUE_REQUIRED)]
+        string $maxRetentionSucceeded = '1 hour',
+        #[\Symfony\Component\Console\Attribute\Option(description: 'The maximum number of jobs to clean-up per call.', name: 'per-call', mode: InputOption::VALUE_REQUIRED)]
+        int $perCall = 1000,
+        #[\Symfony\Component\Console\Attribute\Option(description: 'The JMS Job Id.', name: 'jms-job-id', mode: InputOption::VALUE_OPTIONAL)]
+        $jmsJobId = null
+    ): int
     {
         /** @var EntityManager $em */
         $em = $this->registry->getManagerForClass(Job::class);
         $con = $em->getConnection();
-
         $this->cleanUpExpiredJobs($em, $con, $input);
         $this->collectStaleJobs($em);
-
         return 0;
     }
 

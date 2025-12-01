@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Tests\Functional\TestBundle\Command;
 
 use Symfony\Component\Console\Command\Command;
@@ -13,7 +15,7 @@ class ThrowsExceptionCommand extends Command
         $this->setName('jms-job-queue:throws-exception-cmd');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         var_dump('Throwing exception');
         throw new \RuntimeException('Something went wrong.');

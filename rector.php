@@ -24,6 +24,7 @@ return RectorConfig::configure()
         __DIR__ . '/View',
     ])
     ->withSkip([
+        __DIR__ . '/Resources',
         __DIR__ . '/vendor',
         RemoveUnusedPrivateMethodRector::class,
     ])

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Tests\Functional;
 
 use Doctrine\ORM\EntityManager;
@@ -7,23 +9,19 @@ use JMS\JobQueueBundle\Entity\Job;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 
-class CronTest extends BaseTestCase
+final class CronTest extends BaseTestCase
 {
-    /** @var Application */
-    private $app;
+    private \Symfony\Bundle\FrameworkBundle\Console\Application $app;
 
-    /** @var EntityManager */
-    private $em;
-
-    public function testSchedulesCommands()
+    public function testSchedulesCommands(): void
     {
-        $output = $this->doRun(array('--min-job-interval' => 1, '--max-runtime' => 12));
-        $this->assertEquals(2, substr_count($output, 'Scheduling command scheduled-every-few-seconds'), $output);
+        $output = $this->doRun(['--min-job-interval' => 1, '--max-runtime' => 12]);
+        $this->assertEquals(2, substr_count((string) $output, 'Scheduling command scheduled-every-few-seconds'), $output);
     }
 
-    protected function setUp()
+    protected function setUp(): void
     {
-        $this->createClient(array('config' => 'persistent_db.yml'));
+        $this->createClient(['config' => 'persistent_db.yml']);
 
         if (is_file($databaseFile = self::$kernel->getCacheDir().'/database.sqlite')) {
             unlink($databaseFile);
@@ -34,11 +32,9 @@ class CronTest extends BaseTestCase
         $this->app = new Application(self::$kernel);
         $this->app->setAutoExit(false);
         $this->app->setCatchExceptions(false);
-
-        $this->em = self::$kernel->getContainer()->get('doctrine')->getManagerForClass('JMSJobQueueBundle:Job');
     }
 
-    private function doRun(array $args = array())
+    private function doRun(array $args = [])
     {
         array_unshift($args, 'jms-job-queue:schedule');
         $output = new MemoryOutput();

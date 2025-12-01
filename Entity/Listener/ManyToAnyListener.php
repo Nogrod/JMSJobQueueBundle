@@ -29,7 +29,6 @@ class ManyToAnyListener
     public function __construct(private readonly ManagerRegistry $registry)
     {
         $this->ref = new \ReflectionProperty(Job::class, 'relatedEntities');
-        $this->ref->setAccessible(true);
     }
 
     public function postLoad(PostLoadEventArgs $event): void

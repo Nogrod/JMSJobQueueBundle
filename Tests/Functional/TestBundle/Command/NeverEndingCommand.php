@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Tests\Functional\TestBundle\Command;
 
 use Symfony\Component\Console\Command\Command;
@@ -13,10 +15,12 @@ class NeverEndingCommand extends Command
         $this->setName('jms-job-queue:never-ending');
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         while (true) {
             sleep(5);
         }
+
+        return 0;
     }
 }

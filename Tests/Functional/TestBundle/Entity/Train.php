@@ -1,16 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace JMS\JobQueueBundle\Tests\Functional\TestBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 
-/**
- * @ORM\Entity
- * @ORM\Table(name = "trains")
- * @ORM\ChangeTrackingPolicy("DEFERRED_EXPLICIT")
- */
+#[ORM\Entity]
+#[ORM\ChangeTrackingPolicy('DEFERRED_EXPLICIT')]
+#[ORM\Table(name: 'trains')]
 class Train
 {
-    /** @ORM\Id @ORM\GeneratedValue(strategy = "AUTO") @ORM\Column(type = "integer") */
+    #[ORM\Id]
     public $id;
 }

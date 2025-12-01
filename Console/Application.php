@@ -23,7 +23,7 @@ use Symfony\Component\ErrorHandler\Exception\FlattenException;
  */
 class Application extends BaseApplication
 {
-    private $insertStatStmt;
+    private string $insertStatStmt;
 
     private ?InputInterface $input = null;
 
