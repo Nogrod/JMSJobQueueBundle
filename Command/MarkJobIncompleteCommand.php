@@ -15,21 +15,28 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputArgument;
 
 #[AsCommand('jms-job-queue:mark-incomplete', 'Internal command (do not use). It marks jobs as incomplete.')]
-class MarkJobIncompleteCommand
+class MarkJobIncompleteCommand extends Command
 {
     public function __construct(private readonly ManagerRegistry $registry, private readonly JobManager $jobManager)
     {
+        parent::__construct();
     }
 
-    public function __invoke(#[\Symfony\Component\Console\Attribute\Argument(description: 'The ID of the Job.', name: 'job-id')]
-    string $jobId, OutputInterface $output): int
+    protected function configure(): void
+    {
+        $this
+            ->addArgument('job-id', InputArgument::REQUIRED, 'The ID of the Job.')
+        ;
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         /** @var EntityManager $em */
         $em = $this->registry->getManagerForClass(Job::class);
 
         /** @var Job|null $job */
         $job = $em->createQuery("SELECT j FROM ".Job::class." j WHERE j.id = :id")
-            ->setParameter('id', $job_id)
+            ->setParameter('id', $input->getArgument('job-id'))
             ->getOneOrNullResult();
 
         if ($job === null) {

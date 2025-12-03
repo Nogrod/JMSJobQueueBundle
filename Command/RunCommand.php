@@ -40,7 +40,7 @@ use Symfony\Component\Process\Exception\ProcessFailedException;
 use Symfony\Component\Process\Process;
 
 #[AsCommand('jms-job-queue:run', 'Runs jobs from the queue.')]
-class RunCommand
+class RunCommand extends Command
 {
     /** @var string */
     private $env;
@@ -56,18 +56,25 @@ class RunCommand
 
     public function __construct(private readonly ManagerRegistry $registry, private readonly JobManager $jobManager, private readonly EventDispatcherInterface $dispatcher, private readonly array $queueOptionsDefault, private readonly array $queueOptions)
     {
+        parent::__construct();
     }
 
-    public function __invoke(#[\Symfony\Component\Console\Attribute\Option(description: 'The maximum runtime in seconds.', name: 'max-runtime', shortcut: 'r', mode: InputOption::VALUE_REQUIRED)]
-    int $maxRuntime = 900, #[\Symfony\Component\Console\Attribute\Option(description: 'The maximum number of concurrent jobs.', name: 'max-concurrent-jobs', shortcut: 'j', mode: InputOption::VALUE_REQUIRED)]
-    int $maxConcurrentJobs = 4, #[\Symfony\Component\Console\Attribute\Option(description: 'Time to sleep when the queue ran out of jobs.', name: 'idle-time', mode: InputOption::VALUE_REQUIRED)]
-    int $idleTime = 2, #[\Symfony\Component\Console\Attribute\Option(description: 'Restrict to one or more queues.', name: 'queue', mode: InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY)]
-    array $queue = [], #[\Symfony\Component\Console\Attribute\Option(description: 'The name that uniquely identifies this worker process.', name: 'worker-name', mode: InputOption::VALUE_REQUIRED)]
-    $workerName = null, ?OutputInterface $output = null): int
+    protected function configure(): void
+    {
+        $this
+            ->addOption('max-runtime', 'r', InputOption::VALUE_REQUIRED, 'The maximum runtime in seconds.', 900)
+            ->addOption('max-concurrent-jobs', 'j', InputOption::VALUE_REQUIRED, 'The maximum number of concurrent jobs.', 4)
+            ->addOption('idle-time', null, InputOption::VALUE_REQUIRED, 'Time to sleep when the queue ran out of jobs.', 2)
+            ->addOption('queue', null, InputOption::VALUE_OPTIONAL | InputOption::VALUE_IS_ARRAY, 'Restrict to one or more queues.', [])
+            ->addOption('worker-name', null, InputOption::VALUE_REQUIRED, 'The name that uniquely identifies this worker process.')
+        ;
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $startTime = time();
 
-        $maxRuntime = (int) $max_runtime;
+        $maxRuntime = (int) $input->getOption('max-runtime');
         if ($maxRuntime <= 0) {
             throw new InvalidArgumentException('The maximum runtime must be greater than zero.');
         }
@@ -76,19 +83,19 @@ class RunCommand
             $maxRuntime += random_int(-120, 120);
         }
 
-        $maxJobs = (int) $max_concurrent_jobs;
+        $maxJobs = (int) $input->getOption('max-concurrent-jobs');
         if ($maxJobs <= 0) {
             throw new InvalidArgumentException('The maximum number of jobs per queue must be greater than zero.');
         }
 
-        $idleTime = (int) $idle_time;
+        $idleTime = (int) $input->getOption('idle-time');
         if ($idleTime <= 0) {
             throw new InvalidArgumentException('Time to sleep when idling must be greater than zero.');
         }
 
-        $restrictedQueues = $queue;
+        $restrictedQueues = $input->getOption('queue');
 
-        $workerName = $worker_name;
+        $workerName = $input->getOption('worker-name');
         if ($workerName === null) {
             $workerName = gethostname().'-'.getmypid();
         }
@@ -101,8 +108,8 @@ class RunCommand
             ));
         }
 
-        $this->env = $env;
-        $this->verbose = $verbose;
+        $this->env = $input->getOption('env');
+        $this->verbose = $input->getOption('verbose');
         $this->output = $output;
         $this->getEntityManager()->getConnection()->getConfiguration()->setMiddlewares([new Middleware(new NullLogger())]);
 

@@ -19,26 +19,33 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand('jms-job-queue:schedule', 'Schedules jobs at defined intervals')]
-class ScheduleCommand
+class ScheduleCommand extends Command
 {
     public function __construct(private readonly ManagerRegistry $registry, private readonly iterable $schedulers, private readonly iterable $cronCommands)
     {
+        parent::__construct();
     }
 
-    public function __invoke(#[\Symfony\Component\Console\Attribute\Option(description: 'The maximum runtime of this command.', name: 'max-runtime', mode: InputOption::VALUE_REQUIRED)]
-    int $maxRuntime = 3600, #[\Symfony\Component\Console\Attribute\Option(description: 'The minimum time between schedules jobs in seconds.', name: 'min-job-interval', mode: InputOption::VALUE_REQUIRED)]
-    int $minJobInterval = 5, ?OutputInterface $output = null): int
+    protected function configure(): void
     {
-        $maxRuntime = $max_runtime;
+        $this
+            ->addOption('max-runtime', null, InputOption::VALUE_REQUIRED, 'The maximum runtime of this command.', 3600)
+            ->addOption('min-job-interval', null, InputOption::VALUE_REQUIRED, 'The minimum time between schedules jobs in seconds.', 5)
+        ;
+    }
+
+    protected function execute(InputInterface $input, OutputInterface $output): int
+    {
+        $maxRuntime = $input->getOption('max-runtime');
         if ($maxRuntime > 300) {
-            $maxRuntime += random_int(0, (int)($max_runtime * 0.05));
+            $maxRuntime += random_int(0, (int)($input->getOption('max-runtime') * 0.05));
         }
 
         if ($maxRuntime <= 0) {
             throw new \RuntimeException('Max. runtime must be greater than zero.');
         }
 
-        $minJobInterval = (int)$min_job_interval;
+        $minJobInterval = (int)$input->getOption('min-job-interval');
         if ($minJobInterval <= 0) {
             throw new \RuntimeException('Min. job interval must be greater than zero.');
         }
