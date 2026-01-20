@@ -7,6 +7,7 @@ namespace JMS\JobQueueBundle\Controller;
 use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\ObjectManager;
 use JMS\JobQueueBundle\Entity\Job;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
 use JMS\JobQueueBundle\View\JobFilter;
@@ -78,7 +79,7 @@ class JobController extends AbstractController
         $statisticOptions = [];
         if ($this->getParameter('jms_job_queue.statistics')) {
             $dataPerCharacteristic = [];
-            foreach ($this->get('doctrine')->getManagerForClass(Job::class)->getConnection()->query("SELECT * FROM jms_job_statistics WHERE job_id = ".$job->getId()) as $row) {
+            foreach ($this->getEm()->getConnection()->query("SELECT * FROM jms_job_statistics WHERE job_id = ".$job->getId()) as $row) {
                 $dataPerCharacteristic[$row['characteristic']][] = [
                     // hack because postgresql lower-cases all column names.
                     array_key_exists('createdAt', $row) ? $row['createdAt'] : $row['createdat'],
@@ -136,7 +137,7 @@ class JobController extends AbstractController
         return new RedirectResponse($url, Response::HTTP_CREATED);
     }
 
-    private function getEm(): EntityManagerInterface
+    private function getEm(): ObjectManager
     {
         return $this->managerRegistry->getManagerForClass(Job::class);
     }

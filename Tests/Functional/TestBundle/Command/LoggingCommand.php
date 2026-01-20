@@ -12,7 +12,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class LoggingCommand extends Command
 {
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('jms-job-queue:logging-cmd')

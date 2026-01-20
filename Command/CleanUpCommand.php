@@ -162,7 +162,7 @@ class CleanUpCommand extends Command
         yield from $this->whileResults($canceledJobs);
     }
 
-    private function whileResults(callable $resultProducer)
+    private function whileResults(callable $resultProducer): \Generator
     {
         $excludedIds = [-1];
 

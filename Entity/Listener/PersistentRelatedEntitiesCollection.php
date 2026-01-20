@@ -455,10 +455,10 @@ class PersistentRelatedEntitiesCollection implements Collection, Selectable, \St
             $filtered = array_filter($filtered, $filter);
         }
 
-        if (null !== $orderings = $criteria->getOrderings()) {
+        if (null !== $orderings = $criteria->orderings()) {
             $next = null;
             foreach (array_reverse($orderings) as $field => $ordering) {
-                $next = ClosureExpressionVisitor::sortByField($field, $ordering == 'DESC' ? -1 : 1, $next);
+                $next = ClosureExpressionVisitor::sortByField($field, $ordering->value == 'DESC' ? -1 : 1, $next);
             }
 
             usort($filtered, $next);
