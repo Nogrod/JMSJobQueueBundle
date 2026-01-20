@@ -8,6 +8,7 @@ declare(ticks=10_000_000);
 
 use Doctrine\DBAL\Statement;
 use Doctrine\DBAL\Types\Type;
+use Doctrine\Dbal\ParameterType;
 use JMS\JobQueueBundle\Entity\Job;
 use Symfony\Bundle\FrameworkBundle\Console\Application as BaseApplication;
 use Symfony\Component\Console\Input\InputInterface;
@@ -78,16 +79,16 @@ class Application extends BaseApplication
         }
     }
 
-    private function saveDebugInformation(\Exception $ex = null): void
+    private function saveDebugInformation(?\Exception $ex = null): void
     {
         if (! $this->input->hasOption('jms-job-id') || null === $jobId = $this->input->getOption('jms-job-id')) {
             return;
         }
 
-        $this->getConnection()->executeUpdate(
+        $this->getConnection()->executeStatement(
             "UPDATE jms_jobs SET stackTrace = :trace, memoryUsage = :memoryUsage, memoryUsageReal = :memoryUsageReal WHERE id = :id",
-            ['id' => $jobId, 'memoryUsage' => memory_get_peak_usage(), 'memoryUsageReal' => memory_get_peak_usage(true), 'trace' => $ex instanceof \Exception ? FlattenException::create($ex) : null],
-            ['id' => \PDO::PARAM_INT, 'memoryUsage' => \PDO::PARAM_INT, 'memoryUsageReal' => \PDO::PARAM_INT, 'trace' => \PDO::PARAM_LOB]
+            ['id' => $jobId, 'memoryUsage' => memory_get_peak_usage(), 'memoryUsageReal' => memory_get_peak_usage(true), 'trace' => $ex instanceof \Exception ? json_encode(FlattenException::create($ex)->toArray()) : null],
+            ['id' => ParameterType::INTEGER, 'memoryUsage' => ParameterType::INTEGER, 'memoryUsageReal' => ParameterType::INTEGER, 'trace' => ParameterType::LARGE_OBJECT]
         );
     }
 
