@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace JMS\JobQueueBundle\Entity\Listener;
 
 use Doctrine\Common\Util\ClassUtils;
+use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\ORM\Event\PostLoadEventArgs;
 use Doctrine\ORM\Event\PostPersistEventArgs;
 use Doctrine\ORM\Event\PreRemoveEventArgs;
@@ -86,7 +87,7 @@ class ManyToAnyListener
         $table->addColumn('job_id', 'bigint', ['notnull' => true, 'unsigned' => true]);
         $table->addColumn('related_class', 'string', ['notnull' => true, 'length' => 150]);
         $table->addColumn('related_id', 'string', ['notnull' => true, 'length' => 100]);
-        $table->setPrimaryKey(['job_id', 'related_class', 'related_id']);
+        $table->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('job_id', 'related_class', 'related_id')->create());
         $table->addForeignKeyConstraint('jms_jobs', ['job_id'], ['id']);
     }
 }

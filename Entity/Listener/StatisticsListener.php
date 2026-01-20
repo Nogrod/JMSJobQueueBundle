@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace JMS\JobQueueBundle\Entity\Listener;
 
+use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use JMS\JobQueueBundle\Entity\Job;
 
@@ -23,6 +24,6 @@ class StatisticsListener
         $table->addColumn('characteristic', 'string', ['length' => 30, 'notnull' => true]);
         $table->addColumn('createdAt', 'datetime', ['notnull' => true]);
         $table->addColumn('charValue', 'float', ['notnull' => true]);
-        $table->setPrimaryKey(['job_id', 'characteristic', 'createdAt']);
+        $table->addPrimaryKeyConstraint(PrimaryKeyConstraint::editor()->setUnquotedColumnNames('job_id', 'characteristic', 'createdAt')->create());
     }
 }
