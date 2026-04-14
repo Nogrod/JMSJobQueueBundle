@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace JMS\JobQueueBundle\Entity\Listener;
 
-use Doctrine\Common\Util\ClassUtils;
 use Doctrine\DBAL\Schema\PrimaryKeyConstraint;
 use Doctrine\ORM\Event\PostLoadEventArgs;
 use Doctrine\ORM\Event\PostPersistEventArgs;
 use Doctrine\ORM\Event\PreRemoveEventArgs;
 use Doctrine\ORM\Tools\Event\GenerateSchemaEventArgs;
 use Doctrine\Persistence\ManagerRegistry;
+use Doctrine\Persistence\Proxy;
 use JMS\JobQueueBundle\Entity\Job;
 
 /**
@@ -62,7 +62,7 @@ class ManyToAnyListener
 
         $con = $event->getObjectManager()->getConnection();
         foreach ($this->ref->getValue($entity) as $relatedEntity) {
-            $relClass = ClassUtils::getClass($relatedEntity);
+            $relClass = $relatedEntity instanceof Proxy ? get_parent_class($relatedEntity) : $relatedEntity::class;
             $relId = $this->registry->getManagerForClass($relClass)->getMetadataFactory()->getMetadataFor($relClass)->getIdentifierValues($relatedEntity);
             asort($relId);
 

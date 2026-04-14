@@ -11,10 +11,11 @@ use Symfony\Component\Console\Input\InputInterface;
 
 class SometimesFailingCommand extends Command
 {
+    protected static $defaultName = 'jms-job-queue:sometimes-failing-cmd';
+
     protected function configure(): void
     {
         $this
-            ->setName('jms-job-queue:sometimes-failing-cmd')
             ->addArgument('time', InputArgument::REQUIRED)
         ;
     }

@@ -23,7 +23,6 @@ namespace JMS\JobQueueBundle\Entity\Repository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\Proxy;
-use Doctrine\Common\Util\ClassUtils;
 use Doctrine\DBAL\ArrayParameterType;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Types\Types;
@@ -176,7 +175,7 @@ class JobManager
             $entity->__load();
         }
 
-        $relClass = ClassUtils::getClass($entity);
+        $relClass = $entity instanceof Proxy ? get_parent_class($entity) : $entity::class;
         $relId = $this->registry->getManagerForClass($relClass)->getMetadataFactory()
                     ->getMetadataFor($relClass)->getIdentifierValues($entity);
         asort($relId);

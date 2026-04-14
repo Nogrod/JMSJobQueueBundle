@@ -12,10 +12,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class LoggingCommand extends Command
 {
+    protected static $defaultName = 'jms-job-queue:logging-cmd';
+
     protected function configure(): void
     {
         $this
-            ->setName('jms-job-queue:logging-cmd')
             ->addArgument('name', InputArgument::REQUIRED, 'The name of this job.')
             ->addArgument('file', InputArgument::REQUIRED, 'The file to log to.')
             ->addOption('runtime', null, InputOption::VALUE_REQUIRED, 'The runtime of this command', 3)

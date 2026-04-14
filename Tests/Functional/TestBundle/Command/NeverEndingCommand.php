@@ -10,10 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class NeverEndingCommand extends Command
 {
-    protected function configure(): void
-    {
-        $this->setName('jms-job-queue:never-ending');
-    }
+    protected static $defaultName = 'jms-job-queue:never-ending';
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

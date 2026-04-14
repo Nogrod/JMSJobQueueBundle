@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace JMS\JobQueueBundle\Controller;
 
-use Doctrine\Common\Util\ClassUtils;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use Doctrine\Persistence\ObjectManager;
+use Doctrine\Persistence\Proxy;
 use JMS\JobQueueBundle\Entity\Job;
 use JMS\JobQueueBundle\Entity\Repository\JobManager;
 use JMS\JobQueueBundle\View\JobFilter;
@@ -71,7 +71,7 @@ class JobController extends AbstractController
     {
         $relatedEntities = [];
         foreach ($job->getRelatedEntities() as $entity) {
-            $class = ClassUtils::getClass($entity);
+            $class = $entity instanceof Proxy ? get_parent_class($entity) : $entity::class;
             $relatedEntities[] = ['class' => $class, 'id' => json_encode($this->managerRegistry->getManagerForClass($class)->getClassMetadata($class)->getIdentifierValues($entity)), 'raw' => $entity];
         }
 

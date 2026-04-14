@@ -13,7 +13,6 @@ call_user_func(function (): void {
     require_once $autoloadFile;
 });
 
-\Doctrine\Common\Annotations\AnnotationRegistry::registerLoader('class_exists');
 
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Config\Loader\LoaderInterface;

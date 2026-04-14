@@ -10,12 +10,7 @@ use Symfony\Component\Console\Input\InputInterface;
 
 class SuccessfulCommand extends Command
 {
-    protected function configure(): void
-    {
-        $this
-            ->setName('jms-job-queue:successful-cmd')
-        ;
-    }
+    protected static $defaultName = 'jms-job-queue:successful-cmd';
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {

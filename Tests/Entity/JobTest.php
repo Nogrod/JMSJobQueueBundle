@@ -37,12 +37,10 @@ final class JobTest extends TestCase
         return $job;
     }
 
-    /**
-     * @expectedException JMS\JobQueueBundle\Exception\InvalidStateTransitionException
-     */
     #[\PHPUnit\Framework\Attributes\Depends('testConstruct')]
     public function testInvalidTransition(Job $job): void
     {
+        $this->expectException(\JMS\JobQueueBundle\Exception\InvalidStateTransitionException::class);
         $job->setState('failed');
     }
 
@@ -138,12 +136,10 @@ final class JobTest extends TestCase
         $this->assertSame($b, $a->getDependencies()->first());
     }
 
-    /**
-     * @expectedException \LogicException
-     * @expectedExceptionMessage You cannot add dependencies to a job which might have been started already.
-     */
     public function testAddDependencyToRunningJob(): void
     {
+        $this->expectException(\LogicException::class);
+        $this->expectExceptionMessage('You cannot add dependencies to a job which might have been started already.');
         $job = new Job('a');
         $job->setState(Job::STATE_RUNNING);
         $this->setField($job, 'id', 1);
